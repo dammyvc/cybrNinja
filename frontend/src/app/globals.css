@@ -2,13 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    :root {
+        --color-primary: #d02115;
+        --color-secondary: #15D17F;
+        --color-accent: #1566D1;
+        --color-four: #15D150;
+        --color-grey-950: theme('colors.gray.950');
+        
+    }
 
-.inter-int {
-  font-family: "Inter", sans-serif;
-  font-optical-sizing: auto;
-  font-style: normal;
-}
-
-body {
-  overflow: auto;
+    .absolute-center {
+        @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+    }
 }

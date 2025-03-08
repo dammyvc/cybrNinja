@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Sora, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import NavBar from "../components/NavBar";
 
-const inter = Inter({
-  variable: "--font-int",
+const soraFont = Sora({
   subsets: ["latin"],
+  variable: "--font-sora",
+  weight: "variable",
+});
+const spaceGroteskFont = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+  weight: "variable",
 });
 
 
@@ -24,14 +30,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      
-      
-
       <body
-        className={`${inter.variable} font-int antialiased w-full min-h-screen relative overflow-x-hidden bg-[rgba(249,252,255,1)] dark:bg-[rgba(0,0,0,0.5)]`}
+        className={`${soraFont.variable} ${spaceGroteskFont.variable} antialiased bg-gray-950 text-gray-300 font-body`}
       >
-        <NavBar />
-        <main>{children}</main>
+        {children}
       </body>
     </html>
   );

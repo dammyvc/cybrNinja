@@ -1,22 +1,29 @@
 import type { Config } from "tailwindcss";
 
-export default {
+const config: Config = {
   content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/sections/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  darkMode: 'class',
   theme: {
+    screens: {
+      sm: "640px",
+      md: "768px",
+      lg: "1200px",
+    },
     extend: {
       fontFamily: {
-        int: ['var(--font-int)'],
+        heading: ["var(--font-sora)", "sans-serif"],
+        body: ["var(--font-space-grotesk)", "sans-serif"],
       },
       colors: {
         primary: '#d02115',
         secondary: '#15D17F',
         accent: '#1566D1',
+        fourth: '#15D150',
         background: '#F9FCFF',
+        gray_bg:'#030712',
         light: '#f5f5f5',
         dark: '#1b1b1b',
         white: '#ffffff',
@@ -24,13 +31,43 @@ export default {
         error: '#FF2E63',
         warning:'#f3bb1b'
       },
-    },
-    screens: {
-      sm: { max: '749px' },
-      md: { max: '999px' },
-      // 'lg': {'min': '1024px'},
-      // other breakpoints...
+      container: {
+        center: true,
+        padding: {
+          DEFAULT: "1rem",
+          lg: "2rem",
+        },
+      },
+      gap: {
+        18: "4.5rem",
+      },
+      inset: {
+        18: "4.5rem",
+      },
+      height: {
+        18: "4.5rem",
+      },
+      padding: {
+        18: "4.5rem",
+      },
+      rotate: {
+        135: "135deg",
+        225: "225deg",
+        270: "270deg",
+        315: "315deg",
+      },
+      keyframes: {
+        "cursor-blink": {
+          "0%": { opacity: "1" },
+          "50%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+      },
+      animation: {
+        "cursor-blink": "cursor-blink 1s step-start infinite",
+      },
     },
   },
   plugins: [],
-} satisfies Config;
+};
+export default config;

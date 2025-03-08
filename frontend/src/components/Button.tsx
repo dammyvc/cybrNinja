@@ -1,24 +1,36 @@
-"use client";
+import { HTMLAttributes } from "react";
+import { cva } from "cva"
 
-import * as React from "react";
+export type ButtonProps = {
+    variant?: "primary" | "secondary" | "tertiary"; 
+    block?: boolean;} 
+    & HTMLAttributes<HTMLButtonElement>
 
-interface ButtonProps {
-    text: string;
-    onClick?: () => void;
-    className?: string; 
-}
+const classes = cva("text-xs tracking-widest uppercase font-bold h-10 px-6 rounded-lg", {
+    variants: {
+        block: {
+            true: "w-full",
+        },
+        
+        variant: {
+            primary: 'bg-primary hover:bg-secondary',
+            secondary: '',
+            tertiary: "border border-secondary text-gray-200 hover:bg-accent hover:border-none",
+        },
 
-export default function Button({
-    text,
-    onClick,
-    className = "",
-}: ButtonProps) {
+    },
+
+    defaultVariants: {
+        variant: "primary",
+        block: false,
+    },
+});
+
+export const Button = (props: ButtonProps) => {
+    const {className = "", children, ...otherProps} = props
     return (
-        <button
-            onClick={onClick}
-            className={`px-6 py-2 rounded-full text-sm font-medium tracking-widest transform hover:scale-105 hover:bg-secondary transition-colors duration-200 ${className}`}
-        >
-            {text}
+        <button className={classes({...otherProps, className})}>{children}
+
         </button>
     );
-}
+};
