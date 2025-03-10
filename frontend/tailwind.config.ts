@@ -57,15 +57,14 @@ const config: Config = {
         270: "270deg",
         315: "315deg",
       },
-      keyframes: {
-        "cursor-blink": {
-          "0%": { opacity: "1" },
-          "50%": { opacity: "0" },
-          "100%": { opacity: "1" },
-        },
-      },
       animation: {
-        "cursor-blink": "cursor-blink 1s step-start infinite",
+        move: "move 5s linear infinite",
+      },
+      keyframes: {
+        move: {
+          "0%": { transform: "translateX(-200px)" },
+          "100%": { transform: "translateX(200px)" },
+        },
       },
     },
   },

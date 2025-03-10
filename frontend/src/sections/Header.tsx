@@ -41,7 +41,7 @@ export const Header = () => {
   const [isMoblieMenuOpen, setIsMobileMenuOpen] = useState(false);
   return (
     <>
-      <header className="border-b border-gray-200/20 relative z-40">
+      <header className="border-b border-gray-200/20 z-[60] sticky bg-background dark:bg-gray-950 shadow-sm top-0">
         <div className="container">
           <div className="h-18 lg:h-20 flex justify-between items-center">
             {/* Left Content */}

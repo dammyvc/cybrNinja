@@ -28,7 +28,7 @@ export const Hero = () => {
           <p className="text-center text-lg mt-8 sm:text-base">
             Gamify your learning with AI-powered phishing quizzes, real-time coaching, and interactive challenges. Stay ahead of threats—level up your security skills today!
           </p>
-          <div className="flex justify-center mt-10 z-10">
+          <div className="flex justify-center mt-10 z-10 mb-10">
             {loginItems.map(({ buttonVariant, name, href }) => (
               <a href={href} key={name}>
                 <Button variant={buttonVariant} >{name}</Button>
