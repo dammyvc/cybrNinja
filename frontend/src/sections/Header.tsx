@@ -4,6 +4,7 @@ import { Button, ButtonProps } from "@/components/Button"
 import { useState } from "react"
 import { twMerge } from "tailwind-merge"
 import { Orbit } from "@/components/Orbit"
+import  Link  from 'next/link'
 
 export const navItems = [
   {
@@ -24,7 +25,7 @@ export const loginItems = [
   {
     buttonVariant: "secondary",
     name: "Login",
-    href: "/login",
+    href: "/dashboard",
   },
   {
     buttonVariant: "primary",
@@ -47,14 +48,15 @@ export const Header = () => {
             {/* Left Content */}
             <div className="flex items-center">
               {/* Logo */}
-              <a href="/">
+              <Link href="/">  
                 <div>
                   <img loading="lazy" src="/white_logo.png" alt="Logo" className="hidden dark:block" />
                 </div>
                 <div>
                   <img loading="lazy" src="/black_logo.png" alt="Logo" className="block dark:hidden" />
-                </div>
-              </a>
+                </div>       
+              </Link> 
+              
 
             </div>
             {/* Middle Content */}
