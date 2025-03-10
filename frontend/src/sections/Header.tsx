@@ -22,7 +22,7 @@ export const navItems = [
 
 export const loginItems = [
   {
-    buttonVariant: "tertiary",
+    buttonVariant: "secondary",
     name: "Login",
     href: "#login",
   },
@@ -48,14 +48,17 @@ export const Header = () => {
             <div className="flex items-center">
               {/* Logo */}
               <div>
-                <img loading="lazy" src="/white_logo.png" alt="Logo" />
+                <img loading="lazy" src="/white_logo.png" alt="Logo" className="hidden dark:block" />
+              </div>
+              <div>
+                <img loading="lazy" src="/black_logo.png" alt="Logo" className="block dark:hidden" />
               </div>
             </div>
             {/* Middle Content */}
             <div className="h-full hidden lg:block">
               <nav className="h-full">
                 {navItems.map(({ name, href }) => (
-                  <a href={href} key={href} className="h-full px-10 relative font-bold text-xs tracking-widest text-gray-400 uppercase inline-flex items-center">{name}</a>
+                  <a href={href} key={href} className="h-full px-10 relative font-bold text-xs tracking-widest text-gray-950 dark:text-gray-400 uppercase inline-flex items-center">{name}</a>
                 ))}
               </nav>
             </div>
@@ -71,13 +74,13 @@ export const Header = () => {
             </div>
             {/* Mobile Menu Button */}
             <div className="flex items-center lg:hidden">
-              <button className="size-10 relative rounded-lg border-2 border-primary hover:border-none hover:bg-secondary" onClick={() => setIsMobileMenuOpen((curr) => !curr)}>
+              <button className="size-10 relative rounded-lg border-2 border-primary" onClick={() => setIsMobileMenuOpen((curr) => !curr)}>
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                  <div className={twMerge("w-4 h-0.5 bg-gray-100 -translate-y-1 duration-300", isMoblieMenuOpen && "translate-y-0 rotate-45")}></div>
+                  <div className={twMerge("w-4 h-0.5 bg-gray-950 dark:bg-gray-100 -translate-y-1 duration-300", isMoblieMenuOpen && "translate-y-0 rotate-45")}></div>
 
                 </div>
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                  <div className={twMerge("w-4 h-0.5 bg-gray-100 translate-y-1 duration-300", isMoblieMenuOpen && "translate-y-0 -rotate-45")}>
+                  <div className={twMerge("w-4 h-0.5 bg-gray-950 dark:bg-gray-100 translate-y-1 duration-300", isMoblieMenuOpen && "translate-y-0 -rotate-45")}>
 
                   </div>
 
@@ -91,7 +94,7 @@ export const Header = () => {
       </header>
       {/* Mobile Menu */}
       {isMoblieMenuOpen && (
-        <div className="fixed top-18 left-0 bottom-0 right-0 bg-gray-950 z-30 overflow-hidden">
+        <div className="fixed top-18 left-0 bottom-0 right-0 bg-background dark:bg-gray-950 z-30 overflow-hidden">
           <div className="absolute-center isolate -z-10">
             <Orbit />
           </div>
@@ -110,7 +113,7 @@ export const Header = () => {
           <div className="container h-full">
             <nav className="flex flex-col gap-4 items-center py-8 h-full justify-center">
               {navItems.map(({ name, href }) => (
-                <a href={href} key={href} className="text-gray-400 uppercase tracking-widest font-bold text-xs h-10">{name}</a>
+                <a href={href} key={href} className="text-gray-950dark:text-gray-400 uppercase tracking-widest font-bold text-xs h-10">{name}</a>
               ))}
 
               {loginItems.map(({ buttonVariant, name, href }) => (

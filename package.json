@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "@tailwindcss/postcss": "^4.0.12",
-    "autoprefixer": "^10.4.20",
-    "cva": "npm:class-variance-authority@^0.7.1",
-    "motion": "^12.4.10",
-    "postcss": "^8.5.3"
-  }
-}
