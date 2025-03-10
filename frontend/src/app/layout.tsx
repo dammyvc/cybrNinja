@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Sora, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import NavBar from "../components/NavBar";
 
 const soraFont = Sora({
   subsets: ["latin"],
