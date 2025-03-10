@@ -15,8 +15,8 @@ export const navItems = [
     href: "#how-it-works",
   },
   {
-    name: "Contact",
-    href: "#contact",
+    name: "FAQ",
+    href: "#faq",
   },
 ];
 
@@ -24,12 +24,12 @@ export const loginItems = [
   {
     buttonVariant: "secondary",
     name: "Login",
-    href: "#login",
+    href: "/login",
   },
   {
     buttonVariant: "primary",
     name: "Sign Up",
-    href: "#sign-up",
+    href: "/sign_up",
   },
 ] satisfies {
   name: string;
@@ -47,12 +47,15 @@ export const Header = () => {
             {/* Left Content */}
             <div className="flex items-center">
               {/* Logo */}
-              <div>
-                <img loading="lazy" src="/white_logo.png" alt="Logo" className="hidden dark:block" />
-              </div>
-              <div>
-                <img loading="lazy" src="/black_logo.png" alt="Logo" className="block dark:hidden" />
-              </div>
+              <a href="/">
+                <div>
+                  <img loading="lazy" src="/white_logo.png" alt="Logo" className="hidden dark:block" />
+                </div>
+                <div>
+                  <img loading="lazy" src="/black_logo.png" alt="Logo" className="block dark:hidden" />
+                </div>
+              </a>
+
             </div>
             {/* Middle Content */}
             <div className="h-full hidden lg:block">

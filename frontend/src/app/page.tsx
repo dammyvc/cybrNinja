@@ -11,9 +11,15 @@ export default function Home() {
     <>
       <Header />
       <Hero />
-      <Features />
-      <HowItWorks />
-      <Faq />
+      <section id="features">
+        <Features />
+      </section>
+      <section id="how-it-works">
+        <HowItWorks />
+      </section>
+      <section id="faq">
+        <Faq />
+      </section>
       <Footer />
       <ThemeSwitcher />
     </>
