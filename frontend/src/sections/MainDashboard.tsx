@@ -8,12 +8,12 @@ export const MainDashboard = () => {
     
 
     return (
-        <div className="flex h-screen w-screen bg-gray-100 dark:bg-neutral-800">
+        <div className="flex h-screen w-screen">
             <MainSidebar />
             
-            <div className="flex-1 flex flex-col h-full w-full">
+            {/* <div className="flex-1 flex flex-col h-full w-full">
                 <Dashboard />
-            </div>
+            </div> */}
         </div>
     );
 };

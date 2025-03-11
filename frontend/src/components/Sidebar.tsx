@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import Link, { LinkProps } from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useState, createContext, useContext } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -172,12 +173,17 @@ export const SidebarLink = ({
     className?: string;
     props?: LinkProps;
 }) => {
-    const { open, animate } = useSidebar();
+    const router = useRouter();
+    const currentPath = typeof window !== "undefined" ? window.location.pathname : ""; 
+
+    const isActive = currentPath === link.href;
+
     return (
         <Link
             href={link.href}
             className={cn(
-                "flex items-center justify-start gap-2  group/sidebar py-2",
+                "flex items-center justify-start gap-2 group/sidebar py-2 transition-colors duration-200",
+                isActive ? "bg-secondary text-white dark:bg-accent rounded-md" : "text-neutral-700 dark:text-neutral-200 hover:bg-gray-200 dark:hover:bg-gray-700",
                 className
             )}
             {...props}
@@ -186,10 +192,10 @@ export const SidebarLink = ({
 
             <motion.span
                 animate={{
-                    display: animate ? (open ? "inline-block" : "none") : "inline-block",
-                    opacity: animate ? (open ? 1 : 0) : 1,
+                    display: "inline-block",
+                    opacity: 1,
                 }}
-                className="text-neutral-700 dark:text-neutral-200 text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0"
+                className="text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0"
             >
                 {link.label}
             </motion.span>
@@ -200,7 +206,7 @@ export const SidebarLink = ({
 export const Logo = () => {
     return (
         <Link
-            href="#"
+            href="/dashboard"
             className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
         >
             <div>
@@ -221,7 +227,7 @@ export const Logo = () => {
 export const LogoIcon = () => {
     return (
         <Link
-            href="/"
+            href="/dashboard"
             className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
         >
             <div>
@@ -236,28 +242,28 @@ export const MainSidebar = () => {
     const links = [
         {
             label: "Dashboard",
-            href: "#",
+            href: "/dashboard",
             icon: (
                 <IconLayoutDashboard className="text-neutral-700 dark:text-neutral-200 h-5 w-5 shrink-0" />
             ),
         },
         {
             label: "Quizzes",
-            href: "#",
+            href: "/quizzes",
             icon: (
                 <IconShieldQuestion className="text-neutral-700 dark:text-neutral-200 h-5 w-5 shrink-0" />
             ),
         },
         {
             label: "Resources",
-            href: "#",
+            href: "/resources_page",
             icon: (
                 <IconWorld className="text-neutral-700 dark:text-neutral-200 h-5 w-5 shrink-0" />
             ),
         },
         {
             label: "Profile",
-            href: "#",
+            href: "/profile",
             icon: (
                 <IconUserBolt className="text-neutral-700 dark:text-neutral-200 h-5 w-5 shrink-0" />
             ),
@@ -288,11 +294,11 @@ export const MainSidebar = () => {
                 <div>
                     <SidebarLink
                         link={{
-                            label: "Manu Arora",
-                            href: "#",
+                            label: open ? "johndoe" : "",
+                            href: "/profile",
                             icon: (
                                 <Image
-                                    src="/placeholder-avatar.png" // Provide a valid image path
+                                    src="/assets/images/white_dash_logo.png" 
                                     className="h-7 w-7 shrink-0 rounded-full"
                                     width={50}
                                     height={50}
