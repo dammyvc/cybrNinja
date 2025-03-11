@@ -210,8 +210,9 @@ export const Logo = () => {
             className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
         >
             <div>
-                <img loading="lazy" src="/assets/images/black_dash_logo.png" alt="Logo" className="flex dark:hidden w-6 shrink-0" />
-                <img loading="lazy" src="/assets/images/white_dash_logo.png" alt="Logo" className="hidden dark:block w-6 shrink-0" />
+                <Image loading="lazy" src="/assets/images/black_dash_logo.png" alt="Logo" width={24} height={24} className="flex dark:hiddenshrink-0" />
+                <Image loading="lazy" src="/assets/images/white_dash_logo.png" alt="Logo" width={24} height={24} className="hidden dark:block shrink-0" />
+
             </div>
             <motion.span
                 initial={{ opacity: 0 }}

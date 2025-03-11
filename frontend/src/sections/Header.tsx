@@ -5,6 +5,7 @@ import { useState } from "react"
 import { twMerge } from "tailwind-merge"
 import { Orbit } from "@/components/Orbit"
 import  Link  from 'next/link'
+import Image from "next/image"
 
 export const navItems = [
   {
@@ -50,10 +51,12 @@ export const Header = () => {
               {/* Logo */}
               <Link href="/">  
                 <div>
-                  <img loading="lazy" src="/white_logo.png" alt="Logo" className="hidden dark:block" />
+                  <Image loading="lazy" src="/white_logo.png" alt="Logo" className="hidden dark:block" width={151} height={62} />
+                  
                 </div>
                 <div>
-                  <img loading="lazy" src="/black_logo.png" alt="Logo" className="block dark:hidden" />
+                <Image loading="lazy" src="/black_logo.png" alt="Logo" className="block dark:hidden" width={151} height={62} />
+                  
                 </div>       
               </Link> 
               

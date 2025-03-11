@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Sora, Space_Grotesk } from "next/font/google";
+import { MainSidebar } from "@/components/Sidebar";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import "../globals.css";
+import { InfoHeader } from "@/components/InfoHeader";
 
 const soraFont = Sora({
     subsets: ["latin"],
@@ -30,11 +33,19 @@ export default function DashboardLayout({
 }>) {
     return (
 
-        <div className={`${soraFont.variable} ${spaceGroteskFont.variable} antialiased bg-background text-gray-950 dark:bg-gray-950 dark:text-gray-300 font-body`}>
-            
+        <div className={`${soraFont.variable} ${spaceGroteskFont.variable} antialiased font-body flex h-screen`}>
+            <div className="">
+                <MainSidebar />
+            </div>
+            <div className="overflow-y-scroll w-full">
+                <InfoHeader />
+                {children}
 
-            {children}
+            </div>
+
+            <ThemeSwitcher />
         </div>
+
 
     );
 }
