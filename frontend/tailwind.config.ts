@@ -23,6 +23,7 @@ const config: Config = {
         secondary: '#15D17F',
         accent: '#1566D1',
         fourth: '#15D150',
+        fifth: '#C4D115',
         background: '#F9FCFF',
         gray_bg:'#030712',
         light: '#f5f5f5',

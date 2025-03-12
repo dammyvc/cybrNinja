@@ -174,7 +174,7 @@ export const SidebarLink = ({
     props?: LinkProps;
 }) => {
     const router = useRouter();
-    const currentPath = typeof window !== "undefined" ? window.location.pathname : ""; 
+    const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
 
     const isActive = currentPath === link.href;
 
@@ -210,7 +210,7 @@ export const Logo = () => {
             className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
         >
             <div>
-                <Image loading="lazy" src="/assets/images/black_dash_logo.png" alt="Logo" width={24} height={24} className="flex dark:hiddenshrink-0" />
+                <Image loading="lazy" src="/assets/images/black_dash_logo.png" alt="Logo" width={24} height={24} className="flex dark:hidden shrink-0" />
                 <Image loading="lazy" src="/assets/images/white_dash_logo.png" alt="Logo" width={24} height={24} className="hidden dark:block shrink-0" />
 
             </div>
@@ -232,8 +232,8 @@ export const LogoIcon = () => {
             className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
         >
             <div>
-                <img loading="lazy" src="/assets/images/black_dash_logo.png" alt="Logo" className="block dark:hidden w-6 shrink-0" />
-                <img loading="lazy" src="/assets/images/white_dash_logo.png" alt="Logo" className="hidden dark:block w-6 shrink-0" />
+                <Image loading="lazy" src="/assets/images/black_dash_logo.png" alt="Logo" width={24} height={24} className="flex dark:hidden shrink-0" />
+                <Image loading="lazy" src="/assets/images/white_dash_logo.png" alt="Logo" width={24} height={24} className="hidden dark:block shrink-0" />
             </div>
         </Link>
     );
@@ -299,7 +299,7 @@ export const MainSidebar = () => {
                             href: "/profile",
                             icon: (
                                 <Image
-                                    src="/assets/images/white_dash_logo.png" 
+                                    src="/assets/images/avatar.png"
                                     className="h-7 w-7 shrink-0 rounded-full"
                                     width={50}
                                     height={50}

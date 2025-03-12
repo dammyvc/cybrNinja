@@ -19,5 +19,16 @@
     html {
         scroll-behavior: smooth;
     }
+
+    .react-calendar {
+        width: 100% !important;
+        border: none !important;
+        font-family: "Sora", sans-serif !important;
+        background-color: #ffffff !important;
+    }
+
+    .dark .react-calendar {
+        background-color: #1b1b1b !important;
+    }
 }
 

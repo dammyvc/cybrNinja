@@ -73,9 +73,9 @@ export const Header = () => {
             {/* Desktop Right Buttons */}
             <div className="hidden lg:flex gap-4">
               {loginItems.map(({ buttonVariant, name, href }) => (
-                <a href={href} key={name}>
+                <Link href={href} key={name}>
                   <Button variant={buttonVariant}>{name}</Button>
-                </a>
+                </Link>
 
               ))}
 
