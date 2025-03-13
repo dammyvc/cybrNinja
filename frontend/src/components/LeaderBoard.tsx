@@ -53,6 +53,7 @@ const leaders = [
 export const LeaderBoard = () => {
     return (
         <div className="bg-white dark:bg-dark p-4 rounded-xl shadow-md w-full border-t-4 border-secondary">
+            <h2 className="font-bold text-lg pb-4">Leaderboard</h2>
     <table className="w-full text-left border-collapse">
         {/* Table Headings */}
         <thead>

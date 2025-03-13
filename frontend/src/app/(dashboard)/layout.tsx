@@ -4,6 +4,7 @@ import { MainSidebar } from "@/components/Sidebar";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import "../globals.css";
 import { InfoHeader } from "@/components/InfoHeader";
+import { QuizProvider } from "@/Contexts/QuizContext";
 
 const soraFont = Sora({
     subsets: ["latin"],
@@ -39,7 +40,7 @@ export default function DashboardLayout({
             </div>
             <div className="overflow-y-scroll w-full">
                 <InfoHeader />
-                {children}
+                <QuizProvider>{children}</QuizProvider> 
 
             </div>
 

@@ -26,7 +26,7 @@ export default function Dashboard() {
                                 title="Phishing Quizzes"
                                 description="Test your ability to identify phishing emails."
                                 moreDescription="When a hacker launches a phishing attack, he or she is trying to trick you into believing that the message is from a legitimate source so that you will click the link or download an attachment."
-                                quizLink="/phishing_quiz"
+                                quizLink="/quizzes/phishing_quiz"
                             />
 
                             <QuizCards

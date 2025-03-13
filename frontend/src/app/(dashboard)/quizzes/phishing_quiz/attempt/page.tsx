@@ -1,25 +1,26 @@
 
-import { ResourceGrid } from "@/components/ResourceGrid";
 import { CalendarView } from "@/components/CalendarView";
-import { LeaderBoard } from "@/components/LeaderBoard";
+import QuizAttempt from "@/components/QuizAttempt";
 
-export default function Resources() {
+
+export default function PhishingAttempt() {
+
     return (
         <>
             <div className="pl-4 flex gap-4 flex-col md:flex-row mr-3 lg:mr-0 md:mr-0">
                 {/* LEFT */}
                 <div className="w-full lg:2-2/3">
-                    <ResourceGrid />
+                    <QuizAttempt />
 
 
                 </div>
                 {/* RIGHT */}
                 <div className="w-full lg:w-1/3 flex flex-col gap-8 mr-2">
                     <CalendarView />
-                    <LeaderBoard />
+
                 </div>
 
             </div>
         </>
-    );
+    )
 }

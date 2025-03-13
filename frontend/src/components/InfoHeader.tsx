@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 
 export const InfoHeader = () => {
-    
+
     return (
         <div className="flex items-center justify-between p-5">
             {/* Welcome and username */}
@@ -14,13 +15,19 @@ export const InfoHeader = () => {
             </div>
             {/* user details */}
             <div className="flex items-center lg:gap-2 gap-1 justify-end w-full">
+
                 <div className="flex flex-col">
+
                     <span className="lg:text-base text-xs text-right font-medium">John Doe</span>
                     <span className="lg:text-xs text-[10px] text-gray-500 text-right">Genin</span>
+
                 </div>
-                <Image src="/assets/images/avatar.png" alt="user avatar" width={36} height={36} className="rounded-full" />
+                <Link href={"/profile"}>
+                    <Image src="/assets/images/avatar.png" alt="user avatar" width={36} height={36} className="rounded-full" />
+                </Link>
+
             </div>
-            
+
         </div>
     )
 }

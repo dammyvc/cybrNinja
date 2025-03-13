@@ -21,7 +21,7 @@ export const QuizCards = ({ imageSrc, title, description, moreDescription, quizL
     const [isModalOpen, setModalOpen] = useState(false);
     return (
         <>
-            <div className="rounded-xl bg-white dark:bg-dark p-4 max-w-[345px] h-[400px] flex flex-col flex-1 shadow-md border-t-4 odd:border-secondary even:border-accent">
+            <div className="rounded-xl bg-white dark:bg-dark p-4 max-w-[345px] h-[400px] flex flex-col flex-1 shadow-md border-t-4 even:border-secondary odd:border-accent">
                 {/* Header Image */}
                 <div className="pb-8">
                     <Image src={imageSrc} alt={title} width={345} height={350} className="rounded-md" />
