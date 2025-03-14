@@ -1,7 +1,5 @@
 "use client"
 
-import { CalendarView } from "@/components/CalendarView";
-import { LeaderBoard } from "@/components/LeaderBoard";
 import { Button } from "@/components/Button";
 import Image from "next/image";
 import Link from "next/link";
@@ -28,11 +26,7 @@ export default function PhishingQuizzes() {
                     </div>
 
                 </div>
-                {/* RIGHT */}
-                <div className="w-full lg:w-1/3 flex flex-col gap-8 mr-2">
-                    <CalendarView />
-                    
-                </div>
+                
 
             </div>
         </>

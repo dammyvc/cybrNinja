@@ -115,7 +115,7 @@ export default function QuizAttempt() {
             <div className="text-gray-600 text-sm mb-2">
                 {currentIndex + 1} / {questions.length}
             </div>
-            <div className="bg-white shadow-md rounded-lg p-6 max-w-lg w-full">
+            <div className="bg-white dark:bg-dark shadow-md rounded-lg p-6 max-w-lg w-full">
                 <h2 className="text-lg font-bold mb-4">{currentQuestion.question}</h2>
                 <div className="space-y-2">
                     {currentQuestion.options.map((option, index) => (
