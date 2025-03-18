@@ -62,7 +62,7 @@ export default function ProfileEdit({ profile, setProfile }: ProfileEditProps) {
                     alt="Profile preview"
                     width={24}
                     height={24}
-                    className="rounded-full object-cover"
+                    className="w-24 h-24 rounded-full object-cover"
                 />
                 <div>
                     <input

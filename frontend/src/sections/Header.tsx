@@ -26,12 +26,12 @@ export const loginItems = [
   {
     buttonVariant: "secondary",
     name: "Login",
-    href: "/dashboard",
+    href: "/api/auth/login",
   },
   {
     buttonVariant: "primary",
     name: "Sign Up",
-    href: "/sign_up",
+    href: "/api/auth/login",
   },
 ] satisfies {
   name: string;

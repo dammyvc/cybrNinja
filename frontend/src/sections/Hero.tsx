@@ -5,7 +5,7 @@ export const loginItems = [
   {
     buttonVariant: "primary",
     name: "Start Learning",
-    href: "#sign-up",
+    href: "/api/auth/login",
   },
 ] satisfies {
   name: string;

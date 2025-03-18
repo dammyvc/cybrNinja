@@ -1,5 +1,6 @@
 import { UserProfile } from '@/types/user';
 import Image from 'next/image';
+import { useUser } from '@auth0/nextjs-auth0/client';
 
 
 interface ProfileViewProps {
@@ -7,19 +8,23 @@ interface ProfileViewProps {
 }
 
 export default function ProfileView({ profile }: ProfileViewProps) {
+    const { user, error, isLoading } = useUser();
+
+    if (isLoading) return <div>Loading...</div>;
+    if (error) return <div>{error.message}</div>;
     return (
-        <div className="space-y-6">
+        user&& <div className="space-y-6">
             <div className="flex items-center space-x-4">
                 <Image
-                    src={profile.profilePicture}
-                    alt="Profile"
+                    src={user.picture || "/assets/images/avatar.png"}
+                    alt={user.picture || "User Profile Picture"}
                     width={24}
                     height={24}
-                    className="rounded-full object-cover"
+                    className="w-24 h-24 rounded-full object-cover"
                 />
                 <div>
-                    <h2 className="text-2xl font-semibold">{profile.username}</h2>
-                    <p className="text-gray-600">{profile.email}</p>
+                    <h2 className="text-2xl font-semibold">{user.name}</h2>
+                    <p className="text-gray-600">{user.email}</p>
                 </div>
             </div>
 
@@ -42,7 +47,7 @@ export default function ProfileView({ profile }: ProfileViewProps) {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {profile.badges.map(badge => (
                         <div key={badge.id} className="bg-gray-100 dark:bg-dark p-2 rounded text-center">
-                            <Image src={badge.image} alt={badge.name} width={16} height={16} className="mx-auto" />
+                            <Image src={badge.image} alt={badge.name} width={16} height={16} className="w-16 h-16 mx-auto" />
                             <p className="font-semibold">{badge.name}</p>
                             <p className="text-sm text-gray-600">{badge.description}</p>
                         </div>

@@ -271,7 +271,7 @@ export const MainSidebar = () => {
 
         {
             label: "Logout",
-            href: "#",
+            href: "/api/auth/logout?returnTo=http://localhost:3000/",
             icon: (
                 <IconLogout2 className="text-neutral-700 dark:text-neutral-200 h-5 w-5 shrink-0" />
             ),

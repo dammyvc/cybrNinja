@@ -5,6 +5,9 @@ import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import "../globals.css";
 import { InfoHeader } from "@/components/InfoHeader";
 import { QuizProvider } from "@/Contexts/QuizContext";
+import { getSession } from "@auth0/nextjs-auth0";
+import { UserProvider } from '@auth0/nextjs-auth0/client';
+import { redirect } from "next/navigation";
 
 const soraFont = Sora({
     subsets: ["latin"],
@@ -17,36 +20,37 @@ const spaceGroteskFont = Space_Grotesk({
     weight: "variable",
 });
 
-
 export const metadata: Metadata = {
     title: "CybrNinja",
     description: "Master the art of cyber security",
     icons: {
         icon: "/web_icon.ico",
-    }
+    },
 };
 
-
-export default function DashboardLayout({
+export default async function DashboardLayout({
     children,
-}: Readonly<{
+}: {
     children: React.ReactNode;
-}>) {
+}) {
+    const session = await getSession();
+
+    if (!session?.user) {
+        redirect("/api/auth/login"); // Redirect if user is not authenticated
+    }
+
     return (
-
-        <div className={`${soraFont.variable} ${spaceGroteskFont.variable} antialiased font-body flex h-screen`}>
-            <div className="">
-                <MainSidebar />
+        <UserProvider>
+            <div className={`${soraFont.variable} ${spaceGroteskFont.variable} antialiased font-body flex h-screen`}>
+                <div>
+                    <MainSidebar />
+                </div>
+                <div className="overflow-y-scroll w-full">
+                    <InfoHeader />
+                    <QuizProvider>{children}</QuizProvider>
+                </div>
+                <ThemeSwitcher />
             </div>
-            <div className="overflow-y-scroll w-full">
-                <InfoHeader />
-                <QuizProvider>{children}</QuizProvider> 
-
-            </div>
-
-            <ThemeSwitcher />
-        </div>
-
-
+        </UserProvider>
     );
 }
