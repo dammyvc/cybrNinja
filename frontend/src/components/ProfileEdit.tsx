@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { UserProfile } from '@/types/user';
+import Image from 'next/image';
 
 interface ProfileEditProps {
     profile: UserProfile;
@@ -56,10 +57,12 @@ export default function ProfileEdit({ profile, setProfile }: ProfileEditProps) {
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             <div className="flex items-center space-x-4">
-                <img
+                <Image
                     src={formData.profilePicture}
                     alt="Profile preview"
-                    className="w-24 h-24 rounded-full object-cover"
+                    width={24}
+                    height={24}
+                    className="rounded-full object-cover"
                 />
                 <div>
                     <input
@@ -104,7 +107,7 @@ export default function ProfileEdit({ profile, setProfile }: ProfileEditProps) {
                 </div>
 
                 <div>
-                    <label className="block mb-1 font-semibold">New Password <span className='text-sm italic font-base'>(Leave blank if you don't wish to change it)</span></label>
+                    <label className="block mb-1 font-semibold">New Password <span className='text-sm italic font-base'>(Leave blank if you don&#39;t wish to change it)</span></label>
                     <input
                         type="password"
                         value={formData.password}

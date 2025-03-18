@@ -78,7 +78,7 @@ export const Faq = () => {
                         <Typography component="span">Do I need cybersecurity experience to use CybrNinja?</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
-                        Not at all! CybrNinja is designed for all skill levels. Whether you're a complete beginner or an experienced professional, the platform adapts to your knowledge and helps you improve at your own pace.
+                        Not at all! CybrNinja is designed for all skill levels. Whether you&#39;re a complete beginner or an experienced professional, the platform adapts to your knowledge and helps you improve at your own pace.
                     </AccordionDetails>
                 </Accordion>
 

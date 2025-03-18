@@ -1,5 +1,6 @@
-// components/profile/ProfileView.tsx
 import { UserProfile } from '@/types/user';
+import Image from 'next/image';
+
 
 interface ProfileViewProps {
     profile: UserProfile;
@@ -9,10 +10,12 @@ export default function ProfileView({ profile }: ProfileViewProps) {
     return (
         <div className="space-y-6">
             <div className="flex items-center space-x-4">
-                <img
+                <Image
                     src={profile.profilePicture}
                     alt="Profile"
-                    className="w-24 h-24 rounded-full object-cover"
+                    width={24}
+                    height={24}
+                    className="rounded-full object-cover"
                 />
                 <div>
                     <h2 className="text-2xl font-semibold">{profile.username}</h2>
@@ -39,7 +42,7 @@ export default function ProfileView({ profile }: ProfileViewProps) {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {profile.badges.map(badge => (
                         <div key={badge.id} className="bg-gray-100 dark:bg-dark p-2 rounded text-center">
-                            <img src={badge.image} alt={badge.name} className="w-16 h-16 mx-auto" />
+                            <Image src={badge.image} alt={badge.name} width={16} height={16} className="mx-auto" />
                             <p className="font-semibold">{badge.name}</p>
                             <p className="text-sm text-gray-600">{badge.description}</p>
                         </div>

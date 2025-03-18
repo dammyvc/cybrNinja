@@ -22,7 +22,7 @@ export default function PhishingQuizzes() {
 
                         <Link href="/quizzes/phishing_quiz/attempt">
                             <Button variant="primary" className="mt-4">
-                                Let's Start
+                                Let&#39;s Start
                             </Button>
 
                         </Link>

@@ -1,6 +1,3 @@
-"use client"
-
-import { CalendarView } from "@/components/CalendarView";
 import QuizResults from "@/components/QuizResult";
 
 

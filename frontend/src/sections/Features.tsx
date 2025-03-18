@@ -6,7 +6,6 @@ export const Features = () => {
     <div className="container">
       <h2 className="container text-4xl font-semibold text-center leading-tight text-black dark:text-white pt-10">
         Features
-
       </h2>
     </div>
     <div className="py-10 lg:py-20 container">
@@ -27,12 +26,10 @@ export const Features = () => {
         ))}
       </div>
     </div>
-
   </section>;
 };
 
 export default Features;
-
 
 const grid = [
   {
@@ -67,26 +64,36 @@ export const Grid = ({
     [Math.floor(Math.random() * 4) + 7, Math.floor(Math.random() * 6) + 1],
   ];
   return (
-    <div className="pointer-events-none absolute left-1/2 top-0  -ml-20 -mt-2 h-full w-full [mask-image:linear-gradient(white,transparent)]">
-      <div className="absolute inset-0 bg-gradient-to-r  [mask-image:radial-gradient(farthest-side_at_top,white,transparent)] dark:from-zinc-900/30 from-zinc-100/30 to-zinc-300/30 dark:to-zinc-900/30 opacity-100">
+    <div className="pointer-events-none absolute left-1/2 top-0 -ml-20 -mt-2 h-full w-full [mask-image:linear-gradient(white,transparent)]">
+      <div className="absolute inset-0 bg-gradient-to-r [mask-image:radial-gradient(farthest-side_at_top,white,transparent)] dark:from-zinc-900/30 from-zinc-100/30 to-zinc-300/30 dark:to-zinc-900/30 opacity-100">
         <GridPattern
           width={size ?? 20}
           height={size ?? 20}
           x="-12"
           y="3"
           squares={p}
-          className="absolute inset-0 h-full w-full  mix-blend-overlay dark:fill-white/10 dark:stroke-white/10 stroke-black/10 fill-black/10"
+          className="absolute inset-0 h-full w-full mix-blend-overlay dark:fill-white/10 dark:stroke-white/10 stroke-black/10 fill-black/10"
         />
       </div>
     </div>
   );
 };
 
-export function GridPattern({ width, height, x, y, squares, ...props }: any) {
+// Define the props interface for GridPattern
+interface GridPatternProps {
+  width: number;
+  height: number;
+  x: string | number;
+  y: string | number;
+  squares?: number[][];
+  className?: string;
+}
+
+export function GridPattern({ width, height, x, y, squares, className }: GridPatternProps) {
   const patternId = useId();
 
   return (
-    <svg aria-hidden="true" {...props}>
+    <svg aria-hidden="true" className={className}>
       <defs>
         <pattern
           id={patternId}
@@ -110,7 +117,7 @@ export function GridPattern({ width, height, x, y, squares, ...props }: any) {
           {squares.map(([x, y]: number[], index: number) => (
             <rect
               strokeWidth="0"
-              key={`${x}-${y}-${index}`} // Ensures uniqueness
+              key={`${x}-${y}-${index}`}
               width={width + 1}
               height={height + 1}
               x={x * width}

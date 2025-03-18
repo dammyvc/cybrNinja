@@ -6,8 +6,6 @@ import {
     IconBadgeFilled,
     IconShieldCheckFilled,
     IconTrendingUp3,
-    IconCircleArrowDownFilled,
-    IconMinus
 } from '@tabler/icons-react';
 
 

@@ -11,7 +11,7 @@ const useThemeSwitcher = (): [ThemeMode, Dispatch<SetStateAction<ThemeMode>>] =>
         const userPref = window.localStorage.getItem("theme") as ThemeMode | null;
 
         const handleChange = () => {
-            let check: ThemeMode = userPref ? userPref : mediaQuery.matches ? "dark" : "light";
+            const check: ThemeMode = userPref ? userPref : mediaQuery.matches ? "dark" : "light";
             setMode(check);
             document.documentElement.classList.toggle("dark", check === "dark");
         };

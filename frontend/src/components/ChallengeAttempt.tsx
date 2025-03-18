@@ -216,9 +216,9 @@ export default function ChallengeAttempt() {
             <Dialog open={showTimeUpModal} onOpenChange={setShowTimeUpModal}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Time's Up!</DialogTitle>
+                        <DialogTitle>Time&#39;s Up!</DialogTitle>
                         <p className="text-gray-600">
-                            The quiz has ended. Let's see how you did!
+                            The quiz has ended. Let&#39;s see how you did!
                         </p>
                     </DialogHeader>
                     <DialogFooter>

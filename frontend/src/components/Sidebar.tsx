@@ -2,7 +2,6 @@
 
 import { cn } from "@/lib/utils";
 import Link, { LinkProps } from "next/link";
-import { useRouter } from "next/navigation";
 import React, { useState, createContext, useContext } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -173,7 +172,7 @@ export const SidebarLink = ({
     className?: string;
     props?: LinkProps;
 }) => {
-    const router = useRouter();
+    
     const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
 
     const isActive = currentPath === link.href;

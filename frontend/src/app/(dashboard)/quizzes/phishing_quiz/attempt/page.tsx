@@ -1,5 +1,3 @@
-
-import { CalendarView } from "@/components/CalendarView";
 import QuizAttempt from "@/components/QuizAttempt";
 
 
