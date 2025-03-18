@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
 import { useRouter } from "next/navigation";
 import { useQuiz } from "@/Contexts/QuizContext";
@@ -9,13 +8,14 @@ interface Score {
     totalQuestions: number;
     correctAnswers: number;
     feedback: string[];
+    results: { question: string; isCorrect: boolean; selectedOption: number | null }[];
 }
 
 export default function QuizResults() {
-    const { score } = useQuiz();
+    const { quizScore, challengeScore } = useQuiz();
     const router = useRouter();
 
-    const calculateXP = () => {
+    const calculateXP = (score: Score | null) => {
         return score ? score.correctAnswers * 10 : 0;
     };
 
@@ -23,7 +23,7 @@ export default function QuizResults() {
         router.push("/quizzes");
     };
 
-    if (!score) {
+    if (!quizScore) {
         return <div>Loading results...</div>;
     }
 
@@ -31,25 +31,55 @@ export default function QuizResults() {
         <div className="flex flex-col items-center justify-center min-h-screen px-4">
             <div className="bg-white shadow-md rounded-lg p-6 max-w-lg w-full">
                 <h1 className="text-2xl font-bold mb-4 text-center">Quiz Results</h1>
-                <div className="text-center mb-6">
+
+                {/* Original Quiz Results */}
+                <div className="mb-6">
+                    <h2 className="text-xl font-semibold mb-2">Original Quiz</h2>
                     <p className="text-lg">
-                        You got <span className="font-bold text-green-600">{score.correctAnswers}</span> out of{" "}
-                        <span className="font-bold">{score.totalQuestions}</span> questions correct!
+                        You got <span className="font-bold text-green-600">{quizScore.correctAnswers}</span> out of{" "}
+                        <span className="font-bold">{quizScore.totalQuestions}</span> questions correct!
                     </p>
                     <p className="text-lg mt-2">
-                        XP Earned: <span className="font-bold text-blue-600">{calculateXP()}</span>
+                        XP Earned: <span className="font-bold text-blue-600">{calculateXP(quizScore)}</span>
                     </p>
-                </div>
-
-                <div className="mb-6">
-                    <h2 className="text-xl font-semibold mb-2">Feedback</h2>
-                    <ul className="list-disc pl-5 space-y-2">
-                        {score.feedback.map((item, index) => (
+                    <ul className="list-disc pl-5 space-y-2 mt-2">
+                        {quizScore.feedback.map((item, index) => (
                             <li key={index} className={item.includes("Correct") ? "text-green-600" : "text-red-600"}>
                                 {item}
                             </li>
                         ))}
                     </ul>
+                </div>
+
+                {/* Timed Challenge Results (if taken) */}
+                {challengeScore && (
+                    <div className="mb-6">
+                        <h2 className="text-xl font-semibold mb-2">Timed Challenge</h2>
+                        <p className="text-lg">
+                            You got <span className="font-bold text-green-600">{challengeScore.correctAnswers}</span> out of{" "}
+                            <span className="font-bold">{challengeScore.totalQuestions}</span> questions correct!
+                        </p>
+                        <p className="text-lg mt-2">
+                            Bonus XP Earned: <span className="font-bold text-blue-600">{calculateXP(challengeScore)}</span>
+                        </p>
+                        <ul className="list-disc pl-5 space-y-2 mt-2">
+                            {challengeScore.feedback.map((item, index) => (
+                                <li key={index} className={item.includes("Correct") ? "text-green-600" : "text-red-600"}>
+                                    {item}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+                {/* Total XP */}
+                <div className="text-center mb-6">
+                    <p className="text-lg font-semibold">
+                        Total XP Earned:{" "}
+                        <span className="font-bold text-blue-600">
+                            {calculateXP(quizScore) + calculateXP(challengeScore)}
+                        </span>
+                    </p>
                 </div>
 
                 <div className="flex justify-center">

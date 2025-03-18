@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/Button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -11,33 +11,70 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
+import { useQuiz } from "@/Contexts/QuizContext";
 
-// Updated questions array with hints
+
 const questions = [
     {
-        question: "What is the main indicator of a phishing email?",
-        options: ["A personal email address", "Poor grammar and urgency", "A government email domain"],
+        question: "What is a common tactic used in phishing emails?",
+        options: ["Providing customer support", "Asking for personal information", "Sending security updates"],
         correct: 1,
-        hint: "Look for signs that create a sense of panic or contain obvious errors."
+        hint: "Phishing emails often trick users into revealing sensitive details."
     },
     {
-        question: "Which of the following is a common phishing technique?",
-        options: ["Sending fake invoices", "Using HTTPS on all websites", "Blocking pop-up ads"],
-        correct: 0,
-        hint: "Consider tactics that trick users into providing sensitive information."
+        question: "Which of these is a red flag in an email link?",
+        options: ["A well-known company domain", "A secure HTTPS link", "A shortened URL"],
+        correct: 2,
+        hint: "Attackers often use URL shorteners to obscure malicious links."
     },
     {
-        question: "Which of the following is a common phishing technique?",
-        options: ["Sending fake invoices", "Using HTTPS on all websites", "Blocking pop-up ads"],
-        correct: 0,
-        hint: "Think about methods that impersonate legitimate businesses."
+        question: "How can you verify if an email is from a legitimate sender?",
+        options: ["Reply to the email to ask", "Check the sender's email address carefully", "Click the links to check the website"],
+        correct: 1,
+        hint: "The sender's email domain can reveal potential impersonation."
     },
     {
-        question: "Which of the following is a common phishing technique?",
-        options: ["Sending fake invoices", "Using HTTPS on all websites", "Blocking pop-up ads"],
+        question: "What should you do if you receive an unexpected email asking for sensitive information?",
+        options: ["Report it to IT or security team", "Ignore and delete it", "Reply to verify the sender"],
         correct: 0,
-        hint: "Focus on techniques that exploit trust in official communications."
+        hint: "Organizations encourage reporting phishing attempts for security."
     },
+    {
+        question: "Which of the following websites might be a phishing site?",
+        options: ["paypal.com", "gov.bank-secure.com", "bankofamerica.com"],
+        correct: 1,
+        hint: "Look for suspicious subdomains or slight misspellings."
+    },
+    {
+        question: "What is a common social engineering tactic in phishing?",
+        options: ["Creating urgency or fear", "Offering free security software", "Asking for general feedback"],
+        correct: 0,
+        hint: "Attackers manipulate emotions to make victims act quickly."
+    },
+    {
+        question: "Which of these is a way to protect yourself from phishing attacks?",
+        options: ["Disable browser security settings", "Enable multi-factor authentication", "Use the same password everywhere"],
+        correct: 1,
+        hint: "Extra layers of security make phishing attempts less effective."
+    },
+    {
+        question: "What does a phishing email typically contain?",
+        options: ["Professional language and correct branding", "A personal greeting and no links", "Grammatical errors and urgent requests"],
+        correct: 2,
+        hint: "Phishers often rely on urgency and poorly written content."
+    },
+    {
+        question: "What should you do before entering credentials on a website?",
+        options: ["Only enter details if the email looks official", "Check the URL for accuracy", "Ignore security warnings"],
+        correct: 1,
+        hint: "Always verify the domain before logging in."
+    },
+    {
+        question: "How do attackers commonly distribute phishing scams?",
+        options: ["Only through email", "Only through social media", "Phone calls, emails, and fake websites"],
+        correct: 2,
+        hint: "Phishing can occur across multiple communication platforms."
+    }
 ];
 
 export default function QuizAttempt() {
@@ -48,12 +85,14 @@ export default function QuizAttempt() {
     const [showExitConfirmation, setShowExitConfirmation] = useState(false);
     const [showHintModal, setShowHintModal] = useState(false);
     const [showChallengePrompt, setShowChallengePrompt] = useState(false);
-    const [results, setResults] = useState<{ question: string; isCorrect: boolean; selectedOption: number | null }[]>([]);
+    const [results, setResults] = useState<
+        { question: string; isCorrect: boolean; selectedOption: number | null }[]
+    >([]);
 
     const currentQuestion = questions[currentIndex];
     const progressPercentage = ((currentIndex + 1) / questions.length) * 100;
-
     const router = useRouter();
+    const { setQuizScore } = useQuiz();
 
     const handleAnswer = (index: number) => {
         setSelectedOption(index);
@@ -97,15 +136,27 @@ export default function QuizAttempt() {
 
     const handleFinishQuiz = () => {
         setShowModal(false);
+        // Save quiz results to context
+        const quizScore = {
+            totalQuestions: questions.length,
+            correctAnswers: results.filter((r) => r.isCorrect).length + (isCorrect ? 1 : 0),
+            feedback: results.map((r, idx) =>
+                r.isCorrect
+                    ? `Q${idx + 1}: Correct!`
+                    : `Q${idx + 1}: Incorrect. Phishing emails often use urgent language or mimic legit sources.`
+            ),
+            results: [...results, { question: currentQuestion.question, isCorrect, selectedOption }],
+        };
+        setQuizScore(quizScore);
         setShowChallengePrompt(true);
     };
 
     const handleChallengeChoice = (participate: boolean) => {
         setShowChallengePrompt(false);
         if (participate) {
-            router.push("/quizzes/phishing_quiz/challenge"); // Redirect to timed challenge page
+            router.push("/quizzes/phishing_quiz/challenge");
         } else {
-            router.push("/quizzes");
+            router.push("/quizzes/phishing_quiz/quiz-results");
         }
     };
 
@@ -121,13 +172,12 @@ export default function QuizAttempt() {
                     {currentQuestion.options.map((option, index) => (
                         <button
                             key={index}
-                            className={`block w-full px-4 py-2 border rounded-lg text-left ${
-                                selectedOption !== null
-                                    ? index === currentQuestion.correct
-                                        ? "bg-green-100 border-green-400"
-                                        : "bg-red-100 border-red-400"
-                                    : "border-gray-300 hover:bg-gray-100"
-                            }`}
+                            className={`block w-full px-4 py-2 border rounded-lg text-left ${selectedOption !== null
+                                ? index === currentQuestion.correct
+                                    ? "bg-green-100 border-green-400"
+                                    : "bg-red-100 border-red-400"
+                                : "border-gray-300 hover:bg-gray-100"
+                                }`}
                             onClick={() => handleAnswer(index)}
                             disabled={selectedOption !== null}
                         >

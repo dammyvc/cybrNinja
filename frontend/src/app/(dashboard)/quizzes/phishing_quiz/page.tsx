@@ -6,7 +6,7 @@ import Link from "next/link";
 
 
 export default function PhishingQuizzes() {
-    
+
     return (
         <>
             <div className="pl-4 flex gap-4 flex-col md:flex-row mr-3 lg:mr-0 md:mr-0">
@@ -18,15 +18,20 @@ export default function PhishingQuizzes() {
                         <p className="text-gray-600 text-sm mt-2">
                             Test yourself on phishing threats and earn mastery points!
                         </p>
-                        <p className="text-gray-500 text-xs mt-1">10 questions • 30 - 45 minutes</p>
-                        <Button variant="primary" className="mt-4">
-                            <Link href="/quizzes/phishing_quiz/attempt">Let's start</Link>
-                        </Button>
+                        <p className="text-gray-500 text-xs mt-1">10 questions</p>
+
+                        <Link href="/quizzes/phishing_quiz/attempt">
+                            <Button variant="primary" className="mt-4">
+                                Let's Start
+                            </Button>
+
+                        </Link>
+
 
                     </div>
 
                 </div>
-                
+
 
             </div>
         </>

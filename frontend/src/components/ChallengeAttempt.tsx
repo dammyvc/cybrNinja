@@ -13,39 +13,77 @@ import {
 import { useRouter } from "next/navigation";
 import { useQuiz } from "@/Contexts/QuizContext";
 
-// Updated questions array with hints
+
 const questions = [
     {
-        question: "What is the main indicator of a phishing email?",
-        options: ["A personal email address", "Poor grammar and urgency", "A government email domain"],
+        question: "Which type of phishing targets specific individuals or organizations?",
+        options: ["Whaling", "Spear phishing", "Clone phishing"],
         correct: 1,
-        hint: "Look for signs that create a sense of panic or contain obvious errors."
+        hint: "It’s a targeted attack, often impersonating someone the victim knows."
     },
     {
-        question: "Which of the following is a common phishing technique?",
-        options: ["Sending fake invoices", "Using HTTPS on all websites", "Blocking pop-up ads"],
-        correct: 0,
-        hint: "Consider tactics that trick users into providing sensitive information."
+        question: "What is a common sign of a phishing website?",
+        options: ["A padlock icon in the browser", "Misspelled URLs or domains", "A customer support chat feature"],
+        correct: 1,
+        hint: "Attackers often register similar-looking domains to deceive users."
     },
     {
-        question: "Which of the following is a common phishing technique?",
-        options: ["Sending fake invoices", "Using HTTPS on all websites", "Blocking pop-up ads"],
-        correct: 0,
-        hint: "Think about methods that impersonate legitimate businesses."
+        question: "Which of these is a method used in vishing (voice phishing)?",
+        options: ["Sending fraudulent emails", "Calling victims and pretending to be a trusted entity", "Redirecting users to fake websites"],
+        correct: 1,
+        hint: "Vishing relies on phone calls instead of digital messages."
     },
     {
-        question: "Which of the following is a common phishing technique?",
-        options: ["Sending fake invoices", "Using HTTPS on all websites", "Blocking pop-up ads"],
-        correct: 0,
-        hint: "Focus on techniques that exploit trust in official communications."
+        question: "A phishing email pretending to be from your bank asks you to log in via a provided link. What should you do?",
+        options: ["Click the link to check if it's real", "Log in with your details carefully", "Visit the bank’s website directly and verify"],
+        correct: 2,
+        hint: "Never trust links in emails—go to the official site instead."
     },
+    {
+        question: "What is the main goal of a phishing attack?",
+        options: ["To sell legitimate products", "To steal sensitive information", "To improve cybersecurity awareness"],
+        correct: 1,
+        hint: "Phishers seek valuable data like passwords or financial details."
+    },
+    {
+        question: "How can you spot a fake login page?",
+        options: ["By checking the URL carefully", "By looking at the design alone", "By seeing if it has a login button"],
+        correct: 0,
+        hint: "Attackers may copy designs, but they can't replicate official URLs."
+    },
+    {
+        question: "Which security measure helps prevent phishing attacks?",
+        options: ["Using multi-factor authentication", "Writing down passwords", "Ignoring software updates"],
+        correct: 0,
+        hint: "Extra verification steps make phishing attempts less effective."
+    },
+    {
+        question: "Which of the following is NOT a form of phishing?",
+        options: ["Smishing", "Vishing", "Cryptojacking"],
+        correct: 2,
+        hint: "This attack method involves hijacking devices for mining cryptocurrency."
+    },
+    {
+        question: "What should you do if you accidentally click on a phishing link?",
+        options: ["Immediately enter fake credentials", "Disconnect from the internet and scan your device", "Share the link with friends to warn them"],
+        correct: 1,
+        hint: "Quickly cutting off access can help prevent further damage."
+    },
+    {
+        question: "Why do phishing emails often create a sense of urgency?",
+        options: ["To force quick action without thinking", "Because they need immediate responses", "Because hackers work on tight deadlines"],
+        correct: 0,
+        hint: "Attackers manipulate emotions to bypass rational decision-making."
+    }
 ];
+
 
 // Define a type for score tracking
 interface Score {
     totalQuestions: number;
     correctAnswers: number;
     feedback: string[];
+    results: { question: string; isCorrect: boolean; selectedOption: number | null }[];
 }
 
 export default function ChallengeAttempt() {
@@ -53,20 +91,20 @@ export default function ChallengeAttempt() {
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [showExitConfirmation, setShowExitConfirmation] = useState(false);
     const [showHintModal, setShowHintModal] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(45); // 45 seconds timer
+    const [timeLeft, setTimeLeft] = useState(45);
     const [showTimeUpModal, setShowTimeUpModal] = useState(false);
-    const [score, setScore] = useState<Score>({ 
-        totalQuestions: questions.length, 
-        correctAnswers: 0, 
-        feedback: [] 
+    const [score, setScore] = useState<Score>({
+        totalQuestions: questions.length,
+        correctAnswers: 0,
+        feedback: [],
+        results: [],
     });
 
     const currentQuestion = questions[currentIndex];
     const progressPercentage = ((currentIndex + 1) / questions.length) * 100;
     const router = useRouter();
-    const { setScore: setGlobalScore } = useQuiz();
+    const { setChallengeScore } = useQuiz();
 
-    // Timer effect
     useEffect(() => {
         if (timeLeft > 0) {
             const timer = setInterval(() => {
@@ -81,8 +119,7 @@ export default function ChallengeAttempt() {
     const handleAnswer = (index: number) => {
         setSelectedOption(index);
         const correct = index === currentQuestion.correct;
-        
-        // Update score
+
         setScore((prev) => ({
             ...prev,
             correctAnswers: correct ? prev.correctAnswers + 1 : prev.correctAnswers,
@@ -90,24 +127,36 @@ export default function ChallengeAttempt() {
                 ...prev.feedback,
                 correct
                     ? `Q${currentIndex + 1}: Correct!`
-                    : `Q${currentIndex + 1}: Incorrect. Phishing emails often use urgent language or mimic legit sources.`
-            ]
+                    : `Q${currentIndex + 1}: Incorrect. Phishing emails often use urgent language or mimic legit sources.`,
+            ],
+            results: [
+                ...prev.results,
+                { question: currentQuestion.question, isCorrect: correct, selectedOption: index },
+            ],
         }));
 
-        // Immediately move to next question or end quiz
         setTimeout(() => {
             setSelectedOption(null);
             if (currentIndex < questions.length - 1) {
                 setCurrentIndex((prevIndex) => prevIndex + 1);
             } else {
-                // If last question, go to results
-                setGlobalScore({
+                setChallengeScore({
                     ...score,
-                    correctAnswers: correct ? score.correctAnswers + 1 : score.correctAnswers
+                    correctAnswers: correct ? score.correctAnswers + 1 : score.correctAnswers,
+                    results: [
+                        ...score.results,
+                        { question: currentQuestion.question, isCorrect: correct, selectedOption: index },
+                    ],
                 });
                 router.push("/quizzes/phishing_quiz/quiz-results");
             }
-        }, 300); // Small delay for better UX
+        }, 300);
+    };
+
+    const handleTimeUpClose = () => {
+        setShowTimeUpModal(false);
+        setChallengeScore(score);
+        router.push("/quizzes/phishing_quiz/quiz-results");
     };
 
     const handleExit = () => {
@@ -121,12 +170,6 @@ export default function ChallengeAttempt() {
 
     const cancelExit = () => {
         setShowExitConfirmation(false);
-    };
-
-    const handleTimeUpClose = () => {
-        setShowTimeUpModal(false);
-        setGlobalScore(score);
-        router.push("/quizzes/phishing_quiz/quiz-results");
     };
 
     return (

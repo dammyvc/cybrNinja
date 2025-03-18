@@ -1,4 +1,3 @@
-import { CalendarView } from "@/components/CalendarView";
 import ChallengeAttempt from "@/components/ChallengeAttempt";
 
 
@@ -11,11 +10,6 @@ export default function PhishingAttempt() {
                 <div className="w-full lg:2-2/3">
                     <ChallengeAttempt />
 
-
-                </div>
-                {/* RIGHT */}
-                <div className="w-full lg:w-1/3 flex flex-col gap-8 mr-2">
-                    <CalendarView />
 
                 </div>
 

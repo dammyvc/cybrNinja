@@ -2,24 +2,28 @@
 
 import { createContext, useContext, useState, ReactNode } from "react";
 
-interface Score {
+interface QuizScore {
     totalQuestions: number;
     correctAnswers: number;
     feedback: string[];
+    results: { question: string; isCorrect: boolean; selectedOption: number | null }[];
 }
 
 interface QuizContextType {
-    score: Score | null;
-    setScore: (score: Score) => void;
+    quizScore: QuizScore | null;
+    challengeScore: QuizScore | null;
+    setQuizScore: (score: QuizScore) => void;
+    setChallengeScore: (score: QuizScore) => void;
 }
 
 const QuizContext = createContext<QuizContextType | undefined>(undefined);
 
 export function QuizProvider({ children }: { children: ReactNode }) {
-    const [score, setScore] = useState<Score | null>(null);
+    const [quizScore, setQuizScore] = useState<QuizScore | null>(null);
+    const [challengeScore, setChallengeScore] = useState<QuizScore | null>(null);
 
     return (
-        <QuizContext.Provider value={{ score, setScore }}>
+        <QuizContext.Provider value={{ quizScore, challengeScore, setQuizScore, setChallengeScore }}>
             {children}
         </QuizContext.Provider>
     );
