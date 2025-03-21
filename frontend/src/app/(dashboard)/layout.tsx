@@ -36,7 +36,7 @@ export default async function DashboardLayout({
     const session = await getSession();
 
     if (!session?.user) {
-        redirect("/api/auth/login"); // Redirect if user is not authenticated
+        redirect("/api/auth/login"); 
     }
 
     return (

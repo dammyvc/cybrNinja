@@ -11,6 +11,8 @@ import {
     IconLogout2,
     IconUserBolt,
 } from "@tabler/icons-react";
+import { useUser } from '@auth0/nextjs-auth0/client';
+import { UserProfile } from '@/types/user';
 import Image from "next/image";
 
 interface Links {
@@ -278,10 +280,14 @@ export const MainSidebar = () => {
         },
     ];
     const [open, setOpen] = useState(false);
+    const { user, error, isLoading } = useUser();
+    
+        if (isLoading) return <div>Loading...</div>;
+        if (error) return <div>{error.message}</div>;
 
     return (
 
-        <Sidebar open={open} setOpen={setOpen}>
+        user&& <Sidebar open={open} setOpen={setOpen}>
             <SidebarBody className="justify-between gap-10">
                 <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
                     {open ? <Logo /> : <LogoIcon />}
@@ -294,15 +300,15 @@ export const MainSidebar = () => {
                 <div>
                     <SidebarLink
                         link={{
-                            label: open ? "johndoe" : "",
+                            label: open ? `${user.name}` : "",
                             href: "/profile",
                             icon: (
                                 <Image
-                                    src="/assets/images/avatar.png"
+                                    src= {user.picture || "/assets/images/avatar.png"}
                                     className="h-7 w-7 shrink-0 rounded-full"
                                     width={50}
                                     height={50}
-                                    alt="Avatar"
+                                    alt="User Picture"
                                 />
                             ),
                         }}
