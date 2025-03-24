@@ -5,9 +5,7 @@ import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import "../globals.css";
 import { InfoHeader } from "@/components/InfoHeader";
 import { QuizProvider } from "@/Contexts/QuizContext";
-import { getSession } from "@auth0/nextjs-auth0";
-import { UserProvider } from '@auth0/nextjs-auth0/client';
-import { redirect } from "next/navigation";
+import { UserProvider } from "@auth0/nextjs-auth0/client";
 
 const soraFont = Sora({
     subsets: ["latin"],
@@ -28,17 +26,11 @@ export const metadata: Metadata = {
     },
 };
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    const session = await getSession();
-
-    if (!session?.user) {
-        redirect("/api/auth/login"); 
-    }
-
     return (
         <UserProvider>
             <div className={`${soraFont.variable} ${spaceGroteskFont.variable} antialiased font-body flex h-screen`}>

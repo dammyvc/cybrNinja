@@ -31,7 +31,7 @@ export const loginItems = [
   {
     buttonVariant: "primary",
     name: "Sign Up",
-    href: "/api/auth/login?screen_hint=signup",
+    href: "/api/auth/login",
   },
 ] satisfies {
   name: string;
