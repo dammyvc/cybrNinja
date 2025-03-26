@@ -1,10 +1,18 @@
+"use client";
+
+import { UserProvider, useUserData } from "@/contexts/UserContext";
 import { InfoCards } from "@/components/InfoCards";
 import { QuizCards } from "@/components/QuizCards";
 import { QuizChart } from "@/components/QuizChart";
 import { CalendarView } from "@/components/CalendarView";
 import { LeaderBoard } from "@/components/LeaderBoard";
 
-export default function Dashboard() {
+function DashboardContent() {
+    const { dbUser, loading, error } = useUserData();
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>{error}</div>;
+
     return (
         <>
             <div className="pl-4 flex gap-4 flex-col md:flex-row mr-3 lg:mr-0 md:mr-0">
@@ -12,13 +20,28 @@ export default function Dashboard() {
                 <div className="w-full lg:2-2/3">
                     {/* INFO CARDS */}
                     <div className="flex gap-4 justify-between flex-wrap">
-
-                        <InfoCards type="Experience Points" />
-                        <InfoCards type="Leaderboard Position" />
-                        <InfoCards type="No. of Quizzes Taken" />
-                        <InfoCards type="Pass Rate" />
+                        <InfoCards
+                            type="Experience Points"
+                            value={dbUser?.xp || 0}
+                            comparison="N/A" // Placeholder
+                        />
+                        <InfoCards
+                            type="Leaderboard Position"
+                            value={dbUser?.leaderboard_position || "N/A"}
+                            comparison="N/A" // Placeholder
+                        />
+                        <InfoCards
+                            type="No. of Quizzes Taken"
+                            value={dbUser?.quizzes_taken || 0}
+                            comparison="N/A" // Placeholder
+                        />
+                        <InfoCards
+                            type="Streak"
+                            value={dbUser?.streak?.current_streak || 0}
+                            comparison="N/A" // Placeholder
+                        />
                     </div>
-                    {/* MIDDLE SECTION QUIZ CARDS*/}
+                    {/* MIDDLE SECTION QUIZ CARDS */}
                     <div className="flex gap-4 flex-row pt-4">
                         <div className="w-full flex flex-row gap-4 flex-wrap">
                             <QuizCards
@@ -28,7 +51,6 @@ export default function Dashboard() {
                                 moreDescription="When a hacker launches a phishing attack, he or she is trying to trick you into believing that the message is from a legitimate source so that you will click the link or download an attachment."
                                 quizLink="/quizzes/phishing_quiz"
                             />
-
                             <QuizCards
                                 imageSrc="/assets/images/phishingtemp.jpg"
                                 title="Misdelivery Quizzes"
@@ -36,7 +58,6 @@ export default function Dashboard() {
                                 moreDescription="Misdelivery is the act of accidentally sending sensitive information to the wrong recipient, typically through email, like typing the wrong email address or selecting the incorrect recipient from an auto-complete list."
                                 quizLink={undefined}
                             />
-
                             <QuizCards
                                 imageSrc="/assets/images/phishingtemp.jpg"
                                 title="Quid Pro Quo Quizzes"
@@ -44,7 +65,6 @@ export default function Dashboard() {
                                 moreDescription="Quid pro quo is a deceptive tactic where a cyber attacker offers a seemingly helpful service or benefit in exchange for sensitive information or access to a system."
                                 quizLink={undefined}
                             />
-
                             <QuizCards
                                 imageSrc="/assets/images/phishingtemp.jpg"
                                 title="Pretexting Quizzes"
@@ -53,13 +73,10 @@ export default function Dashboard() {
                                 quizLink={undefined}
                             />
                         </div>
-
                     </div>
                     {/* QUIZ TREND GRAPH */}
                     <div className="w-full h-[500px] pt-4 pb-2">
                         <QuizChart />
-
-
                     </div>
                 </div>
                 {/* RIGHT */}
@@ -67,8 +84,15 @@ export default function Dashboard() {
                     <CalendarView />
                     <LeaderBoard />
                 </div>
-
             </div>
         </>
+    );
+}
+
+export default function Dashboard() {
+    return (
+        <UserProvider>
+            <DashboardContent />
+        </UserProvider>
     );
 }

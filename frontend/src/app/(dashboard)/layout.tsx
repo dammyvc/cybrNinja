@@ -4,8 +4,8 @@ import { MainSidebar } from "@/components/Sidebar";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import "../globals.css";
 import { InfoHeader } from "@/components/InfoHeader";
-import { QuizProvider } from "@/Contexts/QuizContext";
-import { UserProvider } from "@auth0/nextjs-auth0/client";
+import { QuizProvider } from "@/contexts/QuizContext";
+import { UserProvider } from "@/contexts/UserContext";
 
 const soraFont = Sora({
     subsets: ["latin"],

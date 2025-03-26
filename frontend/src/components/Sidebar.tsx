@@ -2,7 +2,8 @@
 
 import { cn } from "@/lib/utils";
 import Link, { LinkProps } from "next/link";
-import React, { useState, createContext, useContext } from "react";
+import { usePathname } from 'next/navigation';
+import React, { useState, createContext, useContext, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
     IconMenu2, IconX, IconLayoutDashboard,
@@ -11,9 +12,13 @@ import {
     IconLogout2,
     IconUserBolt,
 } from "@tabler/icons-react";
-import { useUser } from '@auth0/nextjs-auth0/client';
-import { UserProfile } from '@/types/user';
+import { useUserData } from "@/contexts/UserContext";
 import Image from "next/image";
+
+type User = {
+    username: string;
+    avatar: string;
+};
 
 interface Links {
     label: string;
@@ -174,14 +179,21 @@ export const SidebarLink = ({
     className?: string;
     props?: LinkProps;
 }) => {
-    
-    const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
+    const { setOpen } = useSidebar();
+    const pathname = usePathname();
+    const isActive = pathname === link.href;
 
-    const isActive = currentPath === link.href;
+    const handleClick = () => {
+        // Close sidebar on mobile when link is clicked
+        if (window.innerWidth < 768) { // md breakpoint
+            setOpen(false);
+        }
+    };
 
     return (
         <Link
             href={link.href}
+            onClick={handleClick}
             className={cn(
                 "flex items-center justify-start gap-2 group/sidebar py-2 transition-colors duration-200",
                 isActive ? "bg-secondary text-white dark:bg-accent rounded-md" : "text-neutral-700 dark:text-neutral-200 hover:bg-gray-200 dark:hover:bg-gray-700",
@@ -190,7 +202,6 @@ export const SidebarLink = ({
             {...props}
         >
             {link.icon}
-
             <motion.span
                 animate={{
                     display: "inline-block",
@@ -279,45 +290,52 @@ export const MainSidebar = () => {
             ),
         },
     ];
+
     const [open, setOpen] = useState(false);
-    const { user, error, isLoading } = useUser();
-    
-        if (isLoading) return <div>Loading...</div>;
-        if (error) return <div>{error.message}</div>;
+    const { dbUser, loading, error } = useUserData();
+    const pathname = usePathname();
+
+    useEffect(() => {
+        if (window.innerWidth < 768) {
+            setOpen(false);
+        }
+    }, [pathname]);
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>{error}</div>;
 
     return (
-
-        user&& <Sidebar open={open} setOpen={setOpen}>
-            <SidebarBody className="justify-between gap-10">
-                <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
-                    {open ? <Logo /> : <LogoIcon />}
-                    <div className="mt-8 flex flex-col gap-2">
-                        {links.map((link, idx) => (
-                            <SidebarLink key={idx} link={link} />
-                        ))}
+        dbUser && (
+            <Sidebar open={open} setOpen={setOpen}>
+                <SidebarBody className="justify-between gap-10">
+                    <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+                        {open ? <Logo /> : <LogoIcon />}
+                        <div className="mt-8 flex flex-col gap-2">
+                            {links.map((link, idx) => (
+                                <SidebarLink key={idx} link={link} />
+                            ))}
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <SidebarLink
-                        link={{
-                            label: open ? `${user.name}` : "",
-                            href: "/profile",
-                            icon: (
-                                <Image
-                                    src= {user.picture || "/assets/images/avatar.png"}
-                                    className="h-7 w-7 shrink-0 rounded-full"
-                                    width={50}
-                                    height={50}
-                                    alt="User Picture"
-                                />
-                            ),
-                        }}
-                    />
-                </div>
-            </SidebarBody>
-        </Sidebar>
-
-
+                    <div>
+                        <SidebarLink
+                            link={{
+                                label: open ? `${dbUser.username}` : "",
+                                href: "/profile",
+                                icon: (
+                                    <Image
+                                        src={dbUser.avatar || "/assets/images/avatar.png"}
+                                        className="h-7 w-7 shrink-0 rounded-full"
+                                        width={50}
+                                        height={50}
+                                        alt="User Picture"
+                                    />
+                                ),
+                            }}
+                        />
+                    </div>
+                </SidebarBody>
+            </Sidebar>
+        )
     );
 };
 

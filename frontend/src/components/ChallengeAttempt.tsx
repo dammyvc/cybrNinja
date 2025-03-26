@@ -11,7 +11,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
-import { useQuiz } from "@/Contexts/QuizContext";
+import { useQuiz } from "@/contexts/QuizContext";
 
 
 const questions = [

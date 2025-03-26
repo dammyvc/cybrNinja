@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/Button";
 import { useRouter } from "next/navigation";
-import { useQuiz } from "@/Contexts/QuizContext";
+import { useQuiz } from "@/contexts/QuizContext";
 
 interface Score {
     totalQuestions: number;
