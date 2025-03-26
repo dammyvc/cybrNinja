@@ -1,5 +1,5 @@
 import { HTMLAttributes } from "react";
-import { cva } from "cva";
+import { cva } from "class-variance-authority";
 
 export type ButtonProps = {
     variant?: "primary" | "secondary" | "destructive";

@@ -10,6 +10,8 @@ export default handleAuth({
                 returnTo: '/dashboard',
                 authorizationParams: {
                     screen_hint: isSignup ? 'signup' : undefined,
+                    audience: process.env.AUTH0_API_AUDIENCE, 
+                    scope: 'openid profile read:user',
                 },
             });
         } catch (error: any) {
