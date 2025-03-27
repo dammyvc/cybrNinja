@@ -1,106 +1,73 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/Button";
 import { Progress } from "@/components/ui/progress";
-import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogHeader,
-    DialogFooter,
-} from "@/components/ui/dialog";
-import { useRouter } from "next/navigation";
+import { Dialog, DialogTitle, DialogContent, DialogHeader, DialogFooter } from "@/components/ui/dialog";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuiz } from "@/contexts/QuizContext";
-
-
-const questions = [
-    {
-        question: "What is a common tactic used in phishing emails?",
-        options: ["Providing customer support", "Asking for personal information", "Sending security updates"],
-        correct: 1,
-        hint: "Phishing emails often trick users into revealing sensitive details."
-    },
-    {
-        question: "Which of these is a red flag in an email link?",
-        options: ["A well-known company domain", "A secure HTTPS link", "A shortened URL"],
-        correct: 2,
-        hint: "Attackers often use URL shorteners to obscure malicious links."
-    },
-    {
-        question: "How can you verify if an email is from a legitimate sender?",
-        options: ["Reply to the email to ask", "Check the sender's email address carefully", "Click the links to check the website"],
-        correct: 1,
-        hint: "The sender's email domain can reveal potential impersonation."
-    },
-    {
-        question: "What should you do if you receive an unexpected email asking for sensitive information?",
-        options: ["Report it to IT or security team", "Ignore and delete it", "Reply to verify the sender"],
-        correct: 0,
-        hint: "Organizations encourage reporting phishing attempts for security."
-    },
-    {
-        question: "Which of the following websites might be a phishing site?",
-        options: ["paypal.com", "gov.bank-secure.com", "bankofamerica.com"],
-        correct: 1,
-        hint: "Look for suspicious subdomains or slight misspellings."
-    },
-    {
-        question: "What is a common social engineering tactic in phishing?",
-        options: ["Creating urgency or fear", "Offering free security software", "Asking for general feedback"],
-        correct: 0,
-        hint: "Attackers manipulate emotions to make victims act quickly."
-    },
-    {
-        question: "Which of these is a way to protect yourself from phishing attacks?",
-        options: ["Disable browser security settings", "Enable multi-factor authentication", "Use the same password everywhere"],
-        correct: 1,
-        hint: "Extra layers of security make phishing attempts less effective."
-    },
-    {
-        question: "What does a phishing email typically contain?",
-        options: ["Professional language and correct branding", "A personal greeting and no links", "Grammatical errors and urgent requests"],
-        correct: 2,
-        hint: "Phishers often rely on urgency and poorly written content."
-    },
-    {
-        question: "What should you do before entering credentials on a website?",
-        options: ["Only enter details if the email looks official", "Check the URL for accuracy", "Ignore security warnings"],
-        correct: 1,
-        hint: "Always verify the domain before logging in."
-    },
-    {
-        question: "How do attackers commonly distribute phishing scams?",
-        options: ["Only through email", "Only through social media", "Phone calls, emails, and fake websites"],
-        correct: 2,
-        hint: "Phishing can occur across multiple communication platforms."
-    }
-];
+import { useUserData } from "@/contexts/UserContext";
 
 export default function QuizAttempt() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [isCorrect, setIsCorrect] = useState(false);
-    const [showExitConfirmation, setShowExitConfirmation] = useState(false);
     const [showHintModal, setShowHintModal] = useState(false);
-    const [showChallengePrompt, setShowChallengePrompt] = useState(false);
+    const [questions, setQuestions] = useState<any[]>([]);
     const [results, setResults] = useState<
         { question: string; isCorrect: boolean; selectedOption: number | null }[]
     >([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const quizId = searchParams?.get("quiz_id");
+    const { setQuizScore } = useQuiz();
+    const { dbUser } = useUserData();
+
+    useEffect(() => {
+        const fetchQuiz = async () => {
+            if (!quizId || !dbUser) return;
+
+            try {
+                const res = await fetch(`/api/auth/quiz?quiz_id=${quizId}`, {
+                    method: "GET",
+                    credentials: "include",
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || "Failed to fetch quiz");
+                }
+
+                const { questions } = await res.json();
+                setQuestions(questions);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : "Unknown error");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchQuiz();
+    }, [quizId, dbUser]);
+
+    if (loading) return <div>Loading quiz...</div>;
+    if (error) return <div>Error: {error}</div>;
+    if (!questions.length) return <div>No questions available</div>;
 
     const currentQuestion = questions[currentIndex];
     const progressPercentage = ((currentIndex + 1) / questions.length) * 100;
-    const router = useRouter();
-    const { setQuizScore } = useQuiz();
 
     const handleAnswer = (index: number) => {
         setSelectedOption(index);
-        const correct = index === currentQuestion.correct;
+        const correct = currentQuestion.options[index].is_correct;
         setIsCorrect(correct);
         setResults((prev) => [
             ...prev,
-            { question: currentQuestion.question, isCorrect: correct, selectedOption: index },
+            { question: currentQuestion.text, isCorrect: correct, selectedOption: index },
         ]);
         setShowModal(true);
     };
@@ -108,55 +75,51 @@ export default function QuizAttempt() {
     const handleNext = () => {
         setShowModal(false);
         setSelectedOption(null);
-        if (currentIndex < questions.length - 1) {
-            setCurrentIndex((prevIndex) => prevIndex + 1);
-        }
+        if (currentIndex < questions.length - 1) setCurrentIndex((prev) => prev + 1);
     };
 
-    const handleExit = () => {
-        setShowExitConfirmation(true);
-    };
-
-    const confirmExit = () => {
-        setShowExitConfirmation(false);
-        router.push("/quizzes");
-    };
-
-    const cancelExit = () => {
-        setShowExitConfirmation(false);
-    };
-
-    const handleDialogClose = (open: boolean) => {
-        setShowModal(open);
-        if (!open && currentIndex < questions.length - 1) {
-            setCurrentIndex((prevIndex) => prevIndex + 1);
-            setSelectedOption(null);
-        }
-    };
-
-    const handleFinishQuiz = () => {
+    const handleFinishQuiz = async () => {
         setShowModal(false);
-        // Save quiz results to context
-        const quizScore = {
-            totalQuestions: questions.length,
-            correctAnswers: results.filter((r) => r.isCorrect).length + (isCorrect ? 1 : 0),
-            feedback: results.map((r, idx) =>
-                r.isCorrect
-                    ? `Q${idx + 1}: Correct!`
-                    : `Q${idx + 1}: Incorrect. Phishing emails often use urgent language or mimic legit sources.`
-            ),
-            results: [...results, { question: currentQuestion.question, isCorrect, selectedOption }],
+        const attemptData = {
+            quiz_id: quizId,
+            question_attempts: results.map((r, i) => ({
+                question_id: questions[i].question_id,
+                user_answer: r.selectedOption,
+                is_correct: r.isCorrect,
+            })),
+            time_taken: 300, // Placeholder; track real time in production
         };
-        setQuizScore(quizScore);
-        setShowChallengePrompt(true);
-    };
-
-    const handleChallengeChoice = (participate: boolean) => {
-        setShowChallengePrompt(false);
-        if (participate) {
-            router.push("/quizzes/phishing_quiz/challenge");
-        } else {
-            router.push("/quizzes/phishing_quiz/quiz-results");
+    
+        try {
+            const res = await fetch("/api/auth/quiz?endpoint=attempt", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify(attemptData),
+            });
+    
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || "Failed to submit attempt");
+            }
+    
+            const { xp_earned, new_rank } = await res.json();
+            const quizScore = {
+                totalQuestions: questions.length,
+                correctAnswers: results.filter((r) => r.isCorrect).length + (isCorrect ? 1 : 0),
+                feedback: results.map((r, i) => {
+                    const question = questions[i];
+                    const correctOption = question.options.find((opt: any) => opt.is_correct);
+                    return r.isCorrect
+                        ? `Q${i + 1}: Correct!`
+                        : `Q${i + 1}: Incorrect - Your answer: "${question.options[r.selectedOption!].text}". Correct answer: "${correctOption.text}". ${question.options[r.selectedOption!].feedback}`;
+                }),
+                results: [...results, { question: currentQuestion.text, isCorrect, selectedOption }],
+            };
+            setQuizScore(quizScore);
+            router.push(`/quizzes/phishing_quiz/quiz-results?xp=${xp_earned}&rank=${new_rank}`);
+        } catch (err) {
+            console.error("Error submitting attempt:", err);
         }
     };
 
@@ -167,21 +130,22 @@ export default function QuizAttempt() {
                 {currentIndex + 1} / {questions.length}
             </div>
             <div className="bg-white dark:bg-dark shadow-md rounded-lg p-6 max-w-lg w-full">
-                <h2 className="text-lg font-bold mb-4">{currentQuestion.question}</h2>
+                <h2 className="text-lg font-bold mb-4">{currentQuestion.text}</h2>
                 <div className="space-y-2">
-                    {currentQuestion.options.map((option, index) => (
+                    {currentQuestion.options.map((option: any, index: number) => (
                         <button
                             key={index}
-                            className={`block w-full px-4 py-2 border rounded-lg text-left ${selectedOption !== null
-                                ? index === currentQuestion.correct
-                                    ? "bg-green-100 border-green-400"
-                                    : "bg-red-100 border-red-400"
-                                : "border-gray-300 hover:bg-gray-100"
-                                }`}
+                            className={`block w-full px-4 py-2 border rounded-lg text-left ${
+                                selectedOption !== null
+                                    ? option.is_correct
+                                        ? "bg-green-100 border-green-400"
+                                        : "bg-red-100 border-red-400"
+                                    : "border-gray-300 hover:bg-gray-100"
+                            }`}
                             onClick={() => handleAnswer(index)}
                             disabled={selectedOption !== null}
                         >
-                            {option}
+                            {option.text}
                         </button>
                     ))}
                 </div>
@@ -193,28 +157,17 @@ export default function QuizAttempt() {
                         Need a hint?
                     </button>
                 </div>
-                <div className="flex justify-center items-center mt-4">
-                    <Button onClick={handleExit} variant="destructive">
-                        Exit Quiz
-                    </Button>
-                </div>
             </div>
 
-            {/* AI Feedback Modal */}
-            <Dialog open={showModal} onOpenChange={handleDialogClose}>
+            <Dialog open={showModal} onOpenChange={setShowModal}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{isCorrect ? "Correct!" : "Wrong Answer"}</DialogTitle>
                         <p className={`font-bold ${isCorrect ? "text-green-600" : "text-red-600"}`}>
-                            {isCorrect
-                                ? "Great job! You identified the correct answer."
-                                : "Phishing emails often contain urgent language, misspellings, and suspicious links. Be cautious!"}
+                            {currentQuestion.options[selectedOption!]?.feedback}
                         </p>
                     </DialogHeader>
-                    <DialogFooter className="flex justify-between items-center">
-                        <Button onClick={handleExit} variant="destructive">
-                            Exit Quiz
-                        </Button>
+                    <DialogFooter>
                         {currentIndex < questions.length - 1 ? (
                             <Button onClick={handleNext}>Next Question</Button>
                         ) : (
@@ -224,7 +177,6 @@ export default function QuizAttempt() {
                 </DialogContent>
             </Dialog>
 
-            {/* Hint Modal */}
             <Dialog open={showHintModal} onOpenChange={setShowHintModal}>
                 <DialogContent>
                     <DialogHeader>
@@ -233,46 +185,6 @@ export default function QuizAttempt() {
                     </DialogHeader>
                     <DialogFooter>
                         <Button onClick={() => setShowHintModal(false)}>Close</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Exit Confirmation Dialog */}
-            <Dialog open={showExitConfirmation} onOpenChange={setShowExitConfirmation}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Are you sure you want to exit?</DialogTitle>
-                        <p className="text-gray-600">
-                            If you exit now, your progress will not be saved, and the questions you’ve answered will not be recorded.
-                        </p>
-                    </DialogHeader>
-                    <DialogFooter className="flex justify-between items-center">
-                        <Button onClick={cancelExit} variant="secondary">
-                            No, Continue Quiz
-                        </Button>
-                        <Button onClick={confirmExit} variant="destructive">
-                            Yes, Exit
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Challenge Prompt Dialog */}
-            <Dialog open={showChallengePrompt} onOpenChange={setShowChallengePrompt}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Take on a Timed Challenge?</DialogTitle>
-                        <p className="text-gray-600">
-                            Would you like to participate in a timed quiz challenge to test your skills further?
-                        </p>
-                    </DialogHeader>
-                    <DialogFooter className="flex justify-between items-center">
-                        <Button onClick={() => handleChallengeChoice(false)} variant="secondary">
-                            No, View Results
-                        </Button>
-                        <Button onClick={() => handleChallengeChoice(true)}>
-                            Yes, Start Challenge
-                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

@@ -42,9 +42,12 @@ export default function QuizResults() {
                     <p className="text-lg mt-2">
                         XP Earned: <span className="font-bold text-blue-600">{calculateXP(quizScore)}</span>
                     </p>
-                    <ul className="list-disc pl-5 space-y-2 mt-2">
+                    <ul className="list-disc pl-5 space-y-2 mt-2 text-sm">
                         {quizScore.feedback.map((item, index) => (
-                            <li key={index} className={item.includes("Correct") ? "text-green-600" : "text-red-600"}>
+                            <li
+                                key={index}
+                                className={item.includes("Correct") ? "text-green-600" : "text-red-600"}
+                            >
                                 {item}
                             </li>
                         ))}
@@ -62,9 +65,12 @@ export default function QuizResults() {
                         <p className="text-lg mt-2">
                             Bonus XP Earned: <span className="font-bold text-blue-600">{calculateXP(challengeScore)}</span>
                         </p>
-                        <ul className="list-disc pl-5 space-y-2 mt-2">
+                        <ul className="list-disc pl-5 space-y-2 mt-2 text-sm">
                             {challengeScore.feedback.map((item, index) => (
-                                <li key={index} className={item.includes("Correct") ? "text-green-600" : "text-red-600"}>
+                                <li
+                                    key={index}
+                                    className={item.includes("Correct") ? "text-green-600" : "text-red-600"}
+                                >
                                     {item}
                                 </li>
                             ))}
