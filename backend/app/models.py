@@ -5,6 +5,7 @@ from openai import OpenAI
 from utils.logger import get_logger
 from datetime import datetime
 import json
+from random import sample
 
 mongo = PyMongo()
 openai_client = None
@@ -15,7 +16,13 @@ DIFFICULTY_BY_RANK = {"Genin": "easy", "Chunin": "medium", "Special Jonin": "med
 def init_app(app):
     global mongo, openai_client
     mongo.init_app(app)
-    openai_client = OpenAI(api_key=app.config["OPENAI_API_KEY"])
+    api_key = app.config.get("OPENAI_API_KEY")
+    app_logger.debug(f"OPENAI_API_KEY loaded: {api_key}")
+    if not api_key:
+        app_logger.error("OPENAI_API_KEY is not set in config")
+        raise ValueError("OPENAI_API_KEY is missing")
+    openai_client = OpenAI(api_key=api_key)
+    app_logger.debug("OpenAI client initialized successfully")
 
 def get_user_from_db(mongo_id):
     try:
@@ -58,7 +65,7 @@ def get_achievement_details(achievement_id):
 
 def get_leaderboard_position(user_id):
     try:
-        leaderboard = list(mongo.db.leaderboard.find().sort("xp", -1))
+        leaderboard = list(mongo.db.leaderboards.find().sort("xp", -1))
         for position, entry in enumerate(leaderboard, start=1):
             if entry["user_id"] == user_id:
                 return position
@@ -75,30 +82,32 @@ def get_quizzes_taken(user_id):
         app_logger.error(f"Error counting quizzes taken for user_id {user_id}: {str(e)}")
         return 0
 
-def generate_question(user_rank_title, past_mistakes):
-    difficulty = DIFFICULTY_BY_RANK.get(user_rank_title, "easy")
-    prompt = f"""
-    Generate a realistic and unique phishing-related quiz question tailored to a {user_rank_title}-ranked user with {difficulty} difficulty. 
-    The question’s complexity must match the {difficulty} level: 
-    - For 'easy', use straightforward scenarios with obvious clues. 
-    - For 'medium', introduce subtle red flags or multi-step reasoning. 
-    - For 'hard', create complex scenarios requiring deep analysis or knowledge of advanced phishing tactics. 
-    Vary the question by randomly selecting a specific phishing tactic (e.g., email spoofing, smishing, vishing, malicious attachments, fake login pages, or social engineering) 
-    and a realistic scenario (e.g., workplace, online shopping, banking, social media, or tech support). 
-    If applicable, incorporate lessons from past mistakes (question_ids: {past_mistakes}) to target those weaknesses, but avoid repeating exact questions or scenarios from them. 
-    Ensure the question is distinct from previously generated questions by introducing fresh context, wording, or tactics. 
-    Return JSON with: text (the question), options (array of 3 objects with text, is_correct, feedback), difficulty, hint.
-    """
-    try:
-        response = openai_client.chat.completions.create(
-            model="gpt-4-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"}
-        )
-        return json.loads(response.choices[0].message.content)
-    except Exception as e:
-        app_logger.error(f"Error generating question: {str(e)}")
-        raise
+# Opted to pregerenate questions instead of generating them on the fly for performance reasons.
+
+# def generate_question(user_rank_title, past_mistakes):
+#     difficulty = DIFFICULTY_BY_RANK.get(user_rank_title, "easy")
+#     prompt = f"""
+#     Generate a realistic and unique phishing-related quiz question tailored to a {user_rank_title}-ranked user with {difficulty} difficulty. 
+#     The question’s complexity must match the {difficulty} level: 
+#     - For 'easy', use straightforward scenarios with obvious clues. 
+#     - For 'medium', introduce subtle red flags or multi-step reasoning. 
+#     - For 'hard', create complex scenarios requiring deep analysis or knowledge of advanced phishing tactics. 
+#     Vary the question by randomly selecting a specific phishing tactic (e.g., email spoofing, smishing, vishing, malicious attachments, fake login pages, or social engineering) 
+#     and a realistic scenario (e.g., workplace, online shopping, banking, social media, or tech support). 
+#     If applicable, incorporate lessons from past mistakes (question_ids: {past_mistakes}) to target those weaknesses, but avoid repeating exact questions or scenarios from them. 
+#     Ensure the question is distinct from previously generated questions by introducing fresh context, wording, or tactics. 
+#     Return JSON with: text (the question), options (array of 3 objects with text, is_correct, feedback), difficulty, hint.
+#     """
+#     try:
+#         response = openai_client.chat.completions.create(
+#             model="gpt-4-turbo",
+#             messages=[{"role": "user", "content": prompt}],
+#             response_format={"type": "json_object"}
+#         )
+#         return json.loads(response.choices[0].message.content)
+#     except Exception as e:
+#         app_logger.error(f"Error generating question: {str(e)}")
+#         raise
 
 def create_quiz(mongo_id):
     user = get_user_from_db(mongo_id)
@@ -109,19 +118,20 @@ def create_quiz(mongo_id):
     if not rank:
         raise ValueError("Rank not found")
 
-    questions = []
-    for _ in range(10):
-        question_data = generate_question(rank["title"], user.get("past_mistakes", []))
-        question_id = f"q{mongo.db.questions.count_documents({}) + 1}"
-        question_data["question_id"] = question_id
-        mongo.db.questions.insert_one(question_data)
-        questions.append(question_id)
+    difficulty = DIFFICULTY_BY_RANK[rank["title"]]
+    available_questions = list(mongo.db.questions.find({"difficulty": difficulty}, {"_id": 0}))
+    if len(available_questions) < 10:
+        app_logger.error(f"Not enough pre-generated questions for {difficulty} difficulty. Found {len(available_questions)}")
+        raise ValueError(f"Insufficient pre-generated questions for {difficulty} difficulty")
+
+    selected_questions = sample(available_questions, 10)
+    questions = [q["question_id"] for q in selected_questions]
 
     quiz_id = f"quiz{mongo.db.quizzes.count_documents({}) + 1}"
     quiz = {
         "quiz_id": quiz_id,
         "title": "Phishing Quiz",
-        "difficulty_level": DIFFICULTY_BY_RANK[rank["title"]],
+        "difficulty_level": difficulty,
         "time_limit": 600,
         "created_at": datetime.utcnow().isoformat(),
         "questions": questions
@@ -178,4 +188,36 @@ def save_attempt(mongo_id, quiz_id, question_attempts, time_taken):
         {"_id": ObjectId(mongo_id)},
         {"$set": {"xp": new_xp, "rank_id": new_rank["rank_id"], "past_mistakes": past_mistakes}}
     )
+
+    mongo.db.leaderboards.update_one(
+        {"user_id": str(user["user_id"])},
+        {
+            "$set": {
+                "xp_total": new_xp,
+                "last_updated": datetime.utcnow().isoformat()
+            }
+        },
+        upsert=True
+    )
+    
     return {"attempt_id": attempt_id, "xp_earned": xp_earned, "new_rank": new_rank["title"]}
+
+def update_leaderboard_positions():
+    try:
+        
+        leaderboard_entries = list(mongo.db.leaderboards.find().sort("xp_total", -1))
+        
+        
+        for position, entry in enumerate(leaderboard_entries, start=1):
+            mongo.db.leaderboards.update_one(
+                {"user_id": entry["user_id"]},
+                {
+                    "$set": {
+                        "rank_position": position,
+                        "last_updated": datetime.utcnow().isoformat()
+                    }
+                }
+            )
+        app_logger.info(f"Updated {len(leaderboard_entries)} leaderboard positions")
+    except Exception as e:
+        app_logger.error(f"Error updating leaderboard positions: {str(e)}")

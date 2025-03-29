@@ -8,17 +8,35 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuiz } from "@/contexts/QuizContext";
 import { useUserData } from "@/contexts/UserContext";
 
+interface QuizResult {
+    question: string;
+    isCorrect: boolean;
+    selectedOption: number | null;
+}
+
+interface QuizOption {
+    text: string;
+    is_correct: boolean;
+    feedback: string;
+}
+
+interface QuizQuestion {
+    question_id: string;
+    text: string;
+    options: QuizOption[];
+    hint: string;
+}
+
 export default function QuizAttempt() {
-    const [currentIndex, setCurrentIndex] = useState(0);
+    const [currentIndex, setCurrentIndex] = useState<number>(0);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
-    const [showModal, setShowModal] = useState(false);
-    const [isCorrect, setIsCorrect] = useState(false);
-    const [showHintModal, setShowHintModal] = useState(false);
-    const [questions, setQuestions] = useState<any[]>([]);
-    const [results, setResults] = useState<
-        { question: string; isCorrect: boolean; selectedOption: number | null }[]
-    >([]);
-    const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState<boolean>(false);
+    const [isCorrect, setIsCorrect] = useState<boolean>(false);
+    const [showHintModal, setShowHintModal] = useState<boolean>(false);
+    const [showExitModal, setShowExitModal] = useState<boolean>(false);
+    const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+    const [results, setResults] = useState<QuizResult[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
     const router = useRouter();
@@ -26,6 +44,29 @@ export default function QuizAttempt() {
     const quizId = searchParams?.get("quiz_id");
     const { setQuizScore } = useQuiz();
     const { dbUser } = useUserData();
+
+    // Prevent browser navigation
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            e.preventDefault();
+            e.returnValue = "Are you sure you want to leave? Your quiz progress will be lost.";
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, []);
+
+    // Custom navigation handler
+    const navigate = (path: string) => {
+        if (!showExitModal) {
+            setShowExitModal(true);
+        } else {
+            router.push(path);
+        }
+    };
 
     useEffect(() => {
         const fetchQuiz = async () => {
@@ -42,7 +83,7 @@ export default function QuizAttempt() {
                     throw new Error(errorData.error || "Failed to fetch quiz");
                 }
 
-                const { questions } = await res.json();
+                const { questions }: { questions: QuizQuestion[] } = await res.json();
                 setQuestions(questions);
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Unknown error");
@@ -78,6 +119,13 @@ export default function QuizAttempt() {
         if (currentIndex < questions.length - 1) setCurrentIndex((prev) => prev + 1);
     };
 
+    const calculateTimeSpent = (): number => {
+        const startTime = new Date();
+        const endTime = new Date();
+        const timeSpent = (endTime.getTime() - startTime.getTime()) / 1000;
+        return timeSpent;
+    };
+
     const handleFinishQuiz = async () => {
         setShowModal(false);
         const attemptData = {
@@ -87,7 +135,7 @@ export default function QuizAttempt() {
                 user_answer: r.selectedOption,
                 is_correct: r.isCorrect,
             })),
-            time_taken: 300, // Placeholder; track real time in production
+            time_taken: calculateTimeSpent(),
         };
     
         try {
@@ -109,18 +157,27 @@ export default function QuizAttempt() {
                 correctAnswers: results.filter((r) => r.isCorrect).length + (isCorrect ? 1 : 0),
                 feedback: results.map((r, i) => {
                     const question = questions[i];
-                    const correctOption = question.options.find((opt: any) => opt.is_correct);
+                    const correctOption = question.options.find((opt) => opt.is_correct);
                     return r.isCorrect
                         ? `Q${i + 1}: Correct!`
-                        : `Q${i + 1}: Incorrect - Your answer: "${question.options[r.selectedOption!].text}". Correct answer: "${correctOption.text}". ${question.options[r.selectedOption!].feedback}`;
+                        : `Q${i + 1}: Incorrect - Your answer: "${question.options[r.selectedOption!].text}". Correct answer: "${correctOption!.text}". ${question.options[r.selectedOption!].feedback}`;
                 }),
                 results: [...results, { question: currentQuestion.text, isCorrect, selectedOption }],
             };
             setQuizScore(quizScore);
-            router.push(`/quizzes/phishing_quiz/quiz-results?xp=${xp_earned}&rank=${new_rank}`);
+            navigate(`/quizzes/phishing_quiz/quiz-results?xp=${xp_earned}&rank=${new_rank}`);
         } catch (err) {
             console.error("Error submitting attempt:", err);
         }
+    };
+
+    const handleExitQuiz = () => {
+        setShowExitModal(true);
+    };
+
+    const confirmExit = () => {
+        setShowExitModal(false);
+        navigate('/quizzes');
     };
 
     return (
@@ -132,7 +189,7 @@ export default function QuizAttempt() {
             <div className="bg-white dark:bg-dark shadow-md rounded-lg p-6 max-w-lg w-full">
                 <h2 className="text-lg font-bold mb-4">{currentQuestion.text}</h2>
                 <div className="space-y-2">
-                    {currentQuestion.options.map((option: any, index: number) => (
+                    {currentQuestion.options.map((option: QuizOption, index: number) => (
                         <button
                             key={index}
                             className={`block w-full px-4 py-2 border rounded-lg text-left ${
@@ -149,13 +206,20 @@ export default function QuizAttempt() {
                         </button>
                     ))}
                 </div>
-                <div className="mt-4">
+                <div className="mt-4 flex justify-between">
                     <button
                         className="text-sm text-blue-600 hover:underline"
                         onClick={() => setShowHintModal(true)}
                     >
                         Need a hint?
                     </button>
+                    <Button
+                        onClick={handleExitQuiz}
+                        variant="primary"
+                        className="text-red-600 border-red-600 hover:bg-red-100"
+                    >
+                        Exit Quiz
+                    </Button>
                 </div>
             </div>
 
@@ -164,7 +228,7 @@ export default function QuizAttempt() {
                     <DialogHeader>
                         <DialogTitle>{isCorrect ? "Correct!" : "Wrong Answer"}</DialogTitle>
                         <p className={`font-bold ${isCorrect ? "text-green-600" : "text-red-600"}`}>
-                            {currentQuestion.options[selectedOption!]?.feedback}
+                            {selectedOption !== null && currentQuestion.options[selectedOption]?.feedback}
                         </p>
                     </DialogHeader>
                     <DialogFooter>
@@ -185,6 +249,31 @@ export default function QuizAttempt() {
                     </DialogHeader>
                     <DialogFooter>
                         <Button onClick={() => setShowHintModal(false)}>Close</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={showExitModal} onOpenChange={setShowExitModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Are you sure you want to exit?</DialogTitle>
+                        <p className="text-gray-600">
+                            If you exit the quiz now, all your progress will be lost and no XP will be added to your account.
+                        </p>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            onClick={() => setShowExitModal(false)}
+                            variant="primary"
+                        >
+                            Continue Quiz
+                        </Button>
+                        <Button
+                            onClick={confirmExit}
+                            variant="destructive"
+                        >
+                            Exit Quiz
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

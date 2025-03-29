@@ -6,6 +6,7 @@ import re
 import bcrypt
 from utils.logger import get_logger
 from bson.objectid import ObjectId
+import asyncio
 
 app_logger = get_logger()
 

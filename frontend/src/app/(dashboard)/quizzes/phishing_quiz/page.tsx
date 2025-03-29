@@ -3,17 +3,20 @@
 import { Button } from "@/components/Button";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useUserData } from "@/contexts/UserContext"; // Import UserContext
+import { useUserData } from "@/contexts/UserContext";
+import { useState } from "react";
 
 export default function PhishingQuizzes() {
     const router = useRouter();
-    const { dbUser, loading, error } = useUserData(); 
+    const { dbUser, loading, error } = useUserData();
+    const [isStarting, setIsStarting] = useState(false); 
 
     const startQuiz = async () => {
         if (!dbUser) {
             console.error("User not authenticated");
             return;
         }
+        setIsStarting(true);
 
         try {
             const res = await fetch("/api/auth/quiz?endpoint=start", {
@@ -32,6 +35,8 @@ export default function PhishingQuizzes() {
             router.push(`/quizzes/phishing_quiz/attempt?quiz_id=${quiz_id}`);
         } catch (err) {
             console.error("Error starting quiz:", err);
+        } finally {
+            setIsStarting(false);
         }
     };
 
@@ -54,9 +59,13 @@ export default function PhishingQuizzes() {
                         Test yourself on phishing threats and earn mastery points!
                     </p>
                     <p className="text-gray-500 text-xs mt-1">10 questions</p>
-                    <Button variant="primary" className="mt-4" onClick={startQuiz}>
-                        Let's Start
-                    </Button>
+                    {isStarting ? (
+                        <p className="mt-4 text-gray-600">Creating AI GPT-Generated quiz, please wait...</p>
+                    ) : (
+                        <Button variant="primary" className="mt-4" onClick={startQuiz}>
+                            Let's Start
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>
