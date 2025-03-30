@@ -119,12 +119,9 @@ def create_quiz(mongo_id):
         raise ValueError("Rank not found")
 
     difficulty = DIFFICULTY_BY_RANK[rank["title"]]
+    
     available_questions = list(mongo.db.questions.find({"difficulty": difficulty}, {"_id": 0}))
-    if len(available_questions) < 10:
-        app_logger.error(f"Not enough pre-generated questions for {difficulty} difficulty. Found {len(available_questions)}")
-        raise ValueError(f"Insufficient pre-generated questions for {difficulty} difficulty")
-
-    selected_questions = sample(available_questions, 10)
+    selected_questions = sample(available_questions, min(10, len(available_questions)))
     questions = [q["question_id"] for q in selected_questions]
 
     quiz_id = f"quiz{mongo.db.quizzes.count_documents({}) + 1}"
