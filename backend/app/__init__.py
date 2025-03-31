@@ -16,7 +16,7 @@ def create_app():
     init_app(app)
 
     # Register blueprints
-    app.register_blueprint(routes_bp, url_prefix="/api")
-    app.register_blueprint(quiz_bp, url_prefix="/api")
+    app.register_blueprint(routes_bp)
+    app.register_blueprint(quiz_bp)
 
     return app

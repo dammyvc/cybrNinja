@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from .models import mongo, get_user_from_db, get_rank_details, get_streak_details, get_achievement_details
-from .models import get_leaderboard_position, get_quizzes_taken, create_quiz, get_quiz, save_attempt
+from .models import get_leaderboard_position, get_quizzes_taken, create_quiz, get_quiz, save_attempt, update_leaderboard_positions
 from .auth import requires_auth
 import re
 import bcrypt
@@ -46,6 +46,27 @@ def get_user():
     user["leaderboard_position"] = get_leaderboard_position(user["user_id"])
     user["quizzes_taken"] = get_quizzes_taken(user["user_id"])
     return jsonify(user)
+
+@app.route("/api/leaderboard", methods=["GET"])
+def get_leaderboard():
+    try:
+        
+        leaderboard_entries = list(mongo.db.leaderboards.find().sort("rank_position", 1).limit(10))
+
+        
+        leaderboard_data = []
+        for entry in leaderboard_entries:
+            user = mongo.db.users.find_one({"user_id": entry["user_id"]}, {"username": 1})
+            leaderboard_data.append({
+                "rank": entry["rank_position"],
+                "name": f"@{user['username']}" if user else f"@{entry['user_id']}",
+                "xp": entry["xp_total"]
+            })
+
+        return jsonify(leaderboard_data)
+    except Exception as e:
+        app_logger.error(f"Error fetching leaderboard: {str(e)}")
+        return jsonify({"error": "Failed to fetch leaderboard"}), 500
 
 @app.route("/api/auth/update-profile", methods=["PUT"])
 @requires_auth
@@ -160,3 +181,50 @@ def submit_attempt():
     except ValueError as e:
         app_logger.error(f"Error saving attempt: {str(e)}")
         return jsonify({"error": str(e)}), 400
+
+# Endpoint to sync existing users to the leaderboard
+@app.route("/api/leaderboard/sync", methods=["POST"])
+def sync_leaderboard():
+    try:
+        # Fetch all users
+        users = mongo.db.users.find({}, {"user_id": 1, "xp": 1})
+        count = 0
+
+        for user in users:
+            user_id = str(user["user_id"])
+            xp = user.get("xp", 0)
+
+            # Check if the user is already in the leaderboard
+            existing_entry = mongo.db.leaderboards.find_one({"user_id": user_id})
+            if not existing_entry:
+                # Generate a unique leaderboard_id
+                leaderboard_count = mongo.db.leaderboards.count_documents({})
+                leaderboard_id = f"lb_{leaderboard_count + 1}"
+
+                # Insert the user into the leaderboard
+                mongo.db.leaderboards.insert_one({
+                    "leaderboard_id": leaderboard_id,
+                    "user_id": user_id,
+                    "rank_position": 0,  # Will be updated by update_leaderboard_positions
+                    "xp_total": xp,
+                    "last_updated": datetime.utcnow().isoformat()
+                })
+                count += 1
+
+        # Update leaderboard positions
+        update_leaderboard_positions()
+
+        return jsonify({"message": f"Synced {count} users to the leaderboard"})
+    except Exception as e:
+        app_logger.error(f"Error syncing leaderboard: {str(e)}")
+        return jsonify({"error": "Failed to sync leaderboard"}), 500
+
+# Endpoint to trigger leaderboard position update
+@app.route("/api/leaderboard/update-positions", methods=["POST"])
+def trigger_leaderboard_update():
+    try:
+        update_leaderboard_positions()
+        return jsonify({"message": "Leaderboard positions updated successfully"})
+    except Exception as e:
+        app_logger.error(f"Error updating leaderboard positions: {str(e)}")
+        return jsonify({"error": "Failed to update leaderboard positions"}), 500

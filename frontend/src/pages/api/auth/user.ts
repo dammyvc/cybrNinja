@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(401).json({ error: 'No access token available' });
         }
 
-        // Proxy the request to Flask backend
+        
         const backendResponse = await fetch('http://127.0.0.1:5000/api/user', {
             method: 'GET',
             headers: {

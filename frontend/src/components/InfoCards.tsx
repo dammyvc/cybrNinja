@@ -15,7 +15,7 @@ const iconMap: Record<string, React.ReactNode> = {
     "Streak": <IconTrendingUp3 className="text-fifth" />,
 };
 
-export const InfoCards = ({ type, value, comparison }: { type: string, value: string | number, comparison?: string }) => {
+export const InfoCards = ({ type, value}: { type: string, value: string | number }) => {
     return (
         <div className={`rounded-2xl bg-white dark:bg-dark p-4 flex-1 shadow-md dark:text-white border-t-4 ${type === "Experience Points" || type === "Streak" ? "border-secondary" : "border-accent"}`}>
             <div className="flex flex-row justify-between items-center">
@@ -27,7 +27,7 @@ export const InfoCards = ({ type, value, comparison }: { type: string, value: st
                 <div className="flex gap-1 items-center">
                     <IconCircleArrowUpFilled className="w-4 text-secondary dark:text-success" />
                     <span className="text-xs text-secondary dark:text-success">
-                        {comparison || "N/A"} {/* Use comparison prop or fallback to "N/A" */}
+                        {"N/A (Feature Coming Soon)"} 
                     </span>
                 </div>
             </div>

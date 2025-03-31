@@ -23,22 +23,22 @@ function DashboardContent() {
                         <InfoCards
                             type="Experience Points"
                             value={dbUser?.xp || 0}
-                            comparison="N/A" // Placeholder
+                             // Placeholder
                         />
                         <InfoCards
                             type="Leaderboard Position"
                             value={dbUser?.leaderboard_position || "N/A"}
-                            comparison="N/A" // Placeholder
+                             // Placeholder
                         />
                         <InfoCards
                             type="No. of Quizzes Taken"
                             value={dbUser?.quizzes_taken || 0}
-                            comparison="N/A" // Placeholder
+                             // Placeholder
                         />
                         <InfoCards
                             type="Streak"
                             value={dbUser?.streak?.current_streak || 0}
-                            comparison="N/A" // Placeholder
+                             // Placeholder
                         />
                     </div>
                     {/* MIDDLE SECTION QUIZ CARDS */}

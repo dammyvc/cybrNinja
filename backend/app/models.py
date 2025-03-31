@@ -17,12 +17,12 @@ def init_app(app):
     global mongo, openai_client
     mongo.init_app(app)
     api_key = app.config.get("OPENAI_API_KEY")
-    app_logger.debug(f"OPENAI_API_KEY loaded: {api_key}")
+    
     if not api_key:
-        app_logger.error("OPENAI_API_KEY is not set in config")
+        
         raise ValueError("OPENAI_API_KEY is missing")
     openai_client = OpenAI(api_key=api_key)
-    app_logger.debug("OpenAI client initialized successfully")
+    
 
 def get_user_from_db(mongo_id):
     try:
@@ -81,33 +81,6 @@ def get_quizzes_taken(user_id):
     except Exception as e:
         app_logger.error(f"Error counting quizzes taken for user_id {user_id}: {str(e)}")
         return 0
-
-# Opted to pregerenate questions instead of generating them on the fly for performance reasons.
-
-# def generate_question(user_rank_title, past_mistakes):
-#     difficulty = DIFFICULTY_BY_RANK.get(user_rank_title, "easy")
-#     prompt = f"""
-#     Generate a realistic and unique phishing-related quiz question tailored to a {user_rank_title}-ranked user with {difficulty} difficulty. 
-#     The question’s complexity must match the {difficulty} level: 
-#     - For 'easy', use straightforward scenarios with obvious clues. 
-#     - For 'medium', introduce subtle red flags or multi-step reasoning. 
-#     - For 'hard', create complex scenarios requiring deep analysis or knowledge of advanced phishing tactics. 
-#     Vary the question by randomly selecting a specific phishing tactic (e.g., email spoofing, smishing, vishing, malicious attachments, fake login pages, or social engineering) 
-#     and a realistic scenario (e.g., workplace, online shopping, banking, social media, or tech support). 
-#     If applicable, incorporate lessons from past mistakes (question_ids: {past_mistakes}) to target those weaknesses, but avoid repeating exact questions or scenarios from them. 
-#     Ensure the question is distinct from previously generated questions by introducing fresh context, wording, or tactics. 
-#     Return JSON with: text (the question), options (array of 3 objects with text, is_correct, feedback), difficulty, hint.
-#     """
-#     try:
-#         response = openai_client.chat.completions.create(
-#             model="gpt-4-turbo",
-#             messages=[{"role": "user", "content": prompt}],
-#             response_format={"type": "json_object"}
-#         )
-#         return json.loads(response.choices[0].message.content)
-#     except Exception as e:
-#         app_logger.error(f"Error generating question: {str(e)}")
-#         raise
 
 def create_quiz(mongo_id):
     user = get_user_from_db(mongo_id)
@@ -202,7 +175,7 @@ def save_attempt(mongo_id, quiz_id, question_attempts, time_taken):
 def update_leaderboard_positions():
     try:
         
-        leaderboard_entries = list(mongo.db.leaderboards.find().sort("xp_total", -1))
+        leaderboard_entries = list(mongo.db.leaderboards.find().sort([("xp_total", -1), ("last_updated", 1)]))
         
         
         for position, entry in enumerate(leaderboard_entries, start=1):
