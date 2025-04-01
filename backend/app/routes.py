@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from .models import mongo, get_user_from_db, get_rank_details, get_streak_details, get_achievement_details
 from .models import get_leaderboard_position, get_quizzes_taken, create_quiz, get_quiz, save_attempt, update_leaderboard_positions
 from .auth import requires_auth
@@ -7,6 +7,8 @@ import bcrypt
 from utils.logger import get_logger
 from bson.objectid import ObjectId
 import asyncio
+import json
+from datetime import datetime
 
 app_logger = get_logger()
 
@@ -56,7 +58,8 @@ def get_leaderboard():
         
         leaderboard_data = []
         for entry in leaderboard_entries:
-            user = mongo.db.users.find_one({"user_id": entry["user_id"]}, {"username": 1})
+            user_id_int = int(entry["user_id"])
+            user = mongo.db.users.find_one({"user_id": user_id_int}, {"username": 1})
             leaderboard_data.append({
                 "rank": entry["rank_position"],
                 "name": f"@{user['username']}" if user else f"@{entry['user_id']}",
@@ -68,7 +71,7 @@ def get_leaderboard():
         app_logger.error(f"Error fetching leaderboard: {str(e)}")
         return jsonify({"error": "Failed to fetch leaderboard"}), 500
 
-@app.route("/api/auth/update-profile", methods=["PUT"])
+@app.route("/api/update-profile", methods=["PUT"])
 @requires_auth
 def update_profile():
     payload = request.user
@@ -228,3 +231,114 @@ def trigger_leaderboard_update():
     except Exception as e:
         app_logger.error(f"Error updating leaderboard positions: {str(e)}")
         return jsonify({"error": "Failed to update leaderboard positions"}), 500
+
+@app.route("/api/trivia-question", methods=["GET"])
+def get_trivia_question():
+    try:
+        prompt = """
+        Generate a cybersecurity trivia question with 4 multiple-choice answers. The question should be suitable for a daily trivia challenge and focus on topics like phishing, malware, social engineering, or password security. Provide the question, the 4 answer options, and indicate the correct answer.
+
+        Format the response as JSON:
+        {
+            "question": "Question text",
+            "options": ["Option A", "Option B", "Option C", "Option D"],
+            "correctAnswer": "Option A"
+        }
+        """
+        response = current_app.openai_client.chat.completions.create(
+            model="gpt-4-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
+        
+        trivia_data = json.loads(response.choices[0].message.content)
+        return jsonify(trivia_data)
+    except Exception as e:
+        app_logger.error(f"Error generating trivia question: {str(e)}")
+        return jsonify({
+            "error": f"Failed to generate trivia question: {str(e)}"
+        }), 500
+
+@app.route("/api/check-trivia", methods=["GET"])
+@requires_auth
+def check_trivia():
+    payload = request.user
+    try:
+        mongo_id_str = payload["sub"].split("|")[1]
+        mongo_id = ObjectId(mongo_id_str)
+    except (IndexError, ValueError) as e:
+        app_logger.error(f"Invalid sub format or ObjectId: {payload['sub']} - {str(e)}")
+        return jsonify({"error": "Invalid user ID format"}), 400
+
+    try:
+        user = mongo.db.users.find_one({"_id": mongo_id}, {"last_trivia_date": 1})
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        last_trivia_date = user.get("last_trivia_date")
+        if not last_trivia_date:
+            return jsonify({"hasAnsweredToday": false})
+
+        last_date = datetime.fromisoformat(last_trivia_date.split("T")[0])
+        today = datetime.utcnow()
+        has_answered_today = last_date.date() == today.date()
+
+        return jsonify({"hasAnsweredToday": has_answered_today})
+    except Exception as e:
+        app_logger.error(f"Error checking trivia status: {str(e)}")
+        return jsonify({"error": "Failed to check trivia status"}), 500
+
+@app.route("/api/update-xp", methods=["POST"])
+@requires_auth
+def update_xp():
+    payload = request.user
+    try:
+        mongo_id_str = payload["sub"].split("|")[1]
+        mongo_id = ObjectId(mongo_id_str)
+    except (IndexError, ValueError) as e:
+        app_logger.error(f"Invalid sub format or ObjectId: {payload['sub']} - {str(e)}")
+        return jsonify({"error": "Invalid user ID format"}), 400
+
+    data = request.get_json()
+    xp_to_add = data.get("xpToAdd")
+
+    if not isinstance(xp_to_add, int) or xp_to_add <= 0:
+        return jsonify({"error": "xpToAdd must be a positive integer"}), 400
+
+    try:
+        user = mongo.db.users.find_one({"_id": mongo_id})
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        new_xp = user["xp"] + xp_to_add
+
+        # Update user's XP and last_trivia_date
+        mongo.db.users.update_one(
+            {"_id": mongo_id},
+            {
+                "$set": {
+                    "xp": new_xp,
+                    "last_trivia_date": datetime.utcnow().isoformat()
+                }
+            }
+        )
+
+        # Update leaderboard
+        mongo.db.leaderboards.update_one(
+            {"user_id": str(user["user_id"])},
+            {
+                "$set": {
+                    "xp_total": new_xp,
+                    "last_updated": datetime.utcnow().isoformat()
+                }
+            },
+            upsert=True
+        )
+
+        # Update leaderboard positions
+        update_leaderboard_positions()
+
+        return jsonify({"message": "XP updated successfully", "new_xp": new_xp})
+    except Exception as e:
+        app_logger.error(f"Error updating XP: {str(e)}")
+        return jsonify({"error": "Failed to update XP"}), 500

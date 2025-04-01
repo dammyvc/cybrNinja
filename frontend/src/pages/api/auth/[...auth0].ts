@@ -25,9 +25,9 @@ export default handleAuth({
             });
 
             
-            const auth0Domain = process.env.AUTH0_DOMAIN; // e.g., 'your-tenant.us.auth0.com'
+            const auth0Domain = process.env.AUTH0_DOMAIN; 
             const clientId = process.env.AUTH0_CLIENT_ID;
-            const returnTo = encodeURIComponent(`${process.env.AUTH0_BASE_URL}/`); // Must match Allowed Logout URLs in Auth0 settings
+            const returnTo = encodeURIComponent(`${process.env.AUTH0_BASE_URL}/`);
 
             res.setHeader(
                 'Location',

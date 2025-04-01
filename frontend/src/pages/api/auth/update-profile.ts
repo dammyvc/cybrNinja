@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const updateData = req.body;
 
         
-        const backendResponse = await fetch('http://127.0.0.1:5000/api/auth/update-profile', {
+        const backendResponse = await fetch('http://127.0.0.1:5000/api/update-profile', {
             method: 'PUT',
             headers: {
                 Authorization: `Bearer ${accessToken}`,

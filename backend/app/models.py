@@ -28,7 +28,22 @@ def get_user_from_db(mongo_id):
     try:
         user = mongo.db.users.find_one(
             {"_id": ObjectId(mongo_id)},
-            {"_id": 0, "user_id": 1, "username": 1, "email": 1, "password": 1, "avatar": 1, "xp": 1, "rank_id": 1, "streak_id": 1, "achievements": 1, "past_mistakes": 1}
+            {
+                "_id": 0, 
+                "user_id": 1, 
+                "username": 1, 
+                "email": 1, 
+                "password": 1, 
+                "avatar": 1, 
+                "xp": 1, 
+                "rank_id": 1, 
+                "streak_id": 1, 
+                "achievements": 1, 
+                "past_mistakes": 1,
+                "resource_visits": 1,
+                "profile_updated": 1,
+                "last_trivia_date": 1,
+            }
         )
     except Exception as e:
         app_logger.error(f"Invalid MongoDB ID: {str(e)}")
@@ -67,7 +82,8 @@ def get_leaderboard_position(user_id):
     try:
         leaderboard = list(mongo.db.leaderboards.find().sort("xp", -1))
         for position, entry in enumerate(leaderboard, start=1):
-            if entry["user_id"] == user_id:
+            user_id_int = int(entry["user_id"])
+            if user_id_int == user_id:
                 return position
         return None
     except Exception as e:
@@ -76,7 +92,8 @@ def get_leaderboard_position(user_id):
 
 def get_quizzes_taken(user_id):
     try:
-        count = mongo.db.attempts.count_documents({"user_id": user_id})
+        user_id
+        count = mongo.db.attempts.count_documents({ "user_id": user_id})
         return count
     except Exception as e:
         app_logger.error(f"Error counting quizzes taken for user_id {user_id}: {str(e)}")

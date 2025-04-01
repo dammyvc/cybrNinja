@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const { method, query, body } = req;
         let url = 'http://127.0.0.1:5000/api'; 
 
-        // Route based on method and query/path
+        
         if (method === 'POST' && query.endpoint === 'start') {
             url += '/quizzes/phishing/start';
         } else if (method === 'GET' && query.quiz_id) {

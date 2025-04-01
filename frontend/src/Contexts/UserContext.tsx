@@ -4,8 +4,9 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useUser } from "@auth0/nextjs-auth0/client";
 
 interface UserContextType {
-    dbUser: any | null; // We'll use the raw dbUser structure
+    dbUser: any | null;
     setDbUser: (user: any) => void;
+    accessToken: string | null;
     loading: boolean;
     error: string | null;
 }
@@ -15,9 +16,40 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
     const { user, isLoading: authLoading, error: authError } = useUser();
     const [dbUser, setDbUser] = useState<any | null>(null);
+    const [accessToken, setAccessToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Fetch the access token for client-side requests
+    useEffect(() => {
+        const fetchAccessToken = async () => {
+            if (authLoading || !user) return;
+
+            try {
+                const response = await fetch("/api/auth/get-token", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || "Failed to fetch access token");
+                }
+
+                const data = await response.json();
+                setAccessToken(data.accessToken);
+            } catch (err) {
+                console.error("Error fetching access token:", err);
+                setError("Failed to fetch access token");
+            }
+        };
+
+        fetchAccessToken();
+    }, [user, authLoading]);
+
+    // Fetch user data
     useEffect(() => {
         const fetchUserData = async () => {
             if (authLoading) return;
@@ -36,10 +68,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                     credentials: "include",
                     signal: AbortSignal.timeout(30000),
                 });
+
                 if (!res.ok) {
                     const errorData = await res.json();
                     throw new Error(errorData.error || "Failed to fetch user data");
                 }
+
                 const data = await res.json();
                 setDbUser(data);
             } catch (err) {
@@ -54,7 +88,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }, [user, authLoading, authError]);
 
     return (
-        <UserContext.Provider value={{ dbUser, setDbUser, loading, error }}>
+        <UserContext.Provider value={{ dbUser, setDbUser, accessToken, loading, error }}>
             {children}
         </UserContext.Provider>
     );
