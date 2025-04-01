@@ -92,8 +92,8 @@ def get_leaderboard_position(user_id):
 
 def get_quizzes_taken(user_id):
     try:
-        user_id
-        count = mongo.db.attempts.count_documents({ "user_id": user_id})
+        user_id_str = str(user_id)
+        count = mongo.db.attempts.count_documents({"user_id": user_id_str})
         return count
     except Exception as e:
         app_logger.error(f"Error counting quizzes taken for user_id {user_id}: {str(e)}")

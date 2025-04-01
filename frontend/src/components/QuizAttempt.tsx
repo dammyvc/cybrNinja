@@ -38,6 +38,7 @@ export default function QuizAttempt() {
     const [results, setResults] = useState<QuizResult[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [startTime, setStartTime] = useState<Date | null>(null); // Add startTime state
 
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -59,7 +60,7 @@ export default function QuizAttempt() {
         };
     }, []);
 
-    // Custom navigation handler
+    // Custom navigation handler for exiting the quiz
     const navigate = (path: string) => {
         if (!showExitModal) {
             setShowExitModal(true);
@@ -85,6 +86,7 @@ export default function QuizAttempt() {
 
                 const { questions }: { questions: QuizQuestion[] } = await res.json();
                 setQuestions(questions);
+                setStartTime(new Date()); // Set the start time when questions are loaded
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Unknown error");
             } finally {
@@ -120,9 +122,9 @@ export default function QuizAttempt() {
     };
 
     const calculateTimeSpent = (): number => {
-        const startTime = new Date();
+        if (!startTime) return 0; // Return 0 if startTime is not set
         const endTime = new Date();
-        const timeSpent = (endTime.getTime() - startTime.getTime()) / 1000;
+        const timeSpent = (endTime.getTime() - startTime.getTime()) / 1000; // Time in seconds
         return timeSpent;
     };
 
@@ -135,7 +137,7 @@ export default function QuizAttempt() {
                 user_answer: r.selectedOption,
                 is_correct: r.isCorrect,
             })),
-            time_taken: calculateTimeSpent(),
+            time_taken: calculateTimeSpent(), // Use the updated calculateTimeSpent
         };
     
         try {
@@ -165,9 +167,10 @@ export default function QuizAttempt() {
                 results: [...results, { question: currentQuestion.text, isCorrect, selectedOption }],
             };
             setQuizScore(quizScore);
-            navigate(`/quizzes/phishing_quiz/quiz-results?xp=${xp_earned}&rank=${new_rank}`);
+            router.push(`/quizzes/phishing_quiz/quiz-results?xp=${xp_earned}&rank=${new_rank}`);
         } catch (err) {
             console.error("Error submitting attempt:", err);
+            setError(err instanceof Error ? err.message : "Failed to submit quiz attempt");
         }
     };
 

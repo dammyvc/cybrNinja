@@ -49,7 +49,7 @@ export default function ProfileView() {
                                 className="bg-gray-100 dark:bg-dark p-2 rounded text-center"
                             >
                                 <Image
-                                    src={achievement.details?.badge_icon || "/assets/images/black_dash_logo.png" } // Replace with actual image if available
+                                    src={achievement.details?.badge_icon || "/assets/images/black_dash_logo.png" }
                                     alt={achievement.details?.title || "Achievement"}
                                     width={16}
                                     height={16}

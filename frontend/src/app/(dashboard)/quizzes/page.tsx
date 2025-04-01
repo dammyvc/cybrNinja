@@ -14,34 +14,31 @@ export default function Quizzes() {
                     {/* QUIZ CARDS*/}
                     <div className="flex gap-4 flex-row pt-4">
                         <div className="w-full flex flex-row gap-4 flex-wrap">
-                            <QuizCards
-                                imageSrc="/assets/images/phishingtemp.jpg"
+                        <QuizCards
+                                imageSrc="/assets/images/phishingimg.jpg"
                                 title="Phishing Quizzes"
-                                description="Test your ability to identify phishing emails."
+                                description="Test your ability to identify phishing attacks."
                                 moreDescription="When a hacker launches a phishing attack, he or she is trying to trick you into believing that the message is from a legitimate source so that you will click the link or download an attachment."
                                 quizLink="/quizzes/phishing_quiz"
                             />
-
                             <QuizCards
-                                imageSrc="/assets/images/phishingtemp.jpg"
+                                imageSrc="/assets/images/misdeliveryimg.jpg"
                                 title="Misdelivery Quizzes"
-                                description="Test your ability to identify phishing emails."
+                                description="Test your ability to avoid accidentally sending sensitive information to the wrong recipient."
                                 moreDescription="Misdelivery is the act of accidentally sending sensitive information to the wrong recipient, typically through email, like typing the wrong email address or selecting the incorrect recipient from an auto-complete list."
                                 quizLink={undefined}
                             />
-
                             <QuizCards
-                                imageSrc="/assets/images/phishingtemp.jpg"
+                                imageSrc="/assets/images/quidproquoimg.jpg"
                                 title="Quid Pro Quo Quizzes"
-                                description="Test your ability to identify phishing emails."
+                                description="Test your ability to identify deceptive tactics by cyber attackers."
                                 moreDescription="Quid pro quo is a deceptive tactic where a cyber attacker offers a seemingly helpful service or benefit in exchange for sensitive information or access to a system."
                                 quizLink={undefined}
                             />
-
                             <QuizCards
-                                imageSrc="/assets/images/phishingtemp.jpg"
+                                imageSrc="/assets/images/pretextingimg.jpg"
                                 title="Pretexting Quizzes"
-                                description="Test your ability to identify phishing emails."
+                                description="Test your ability to identify pretexting attacks."
                                 moreDescription="Pretexting is a form of social engineering attack in which a scammer creates a plausible scenario to bait victims into divulging sensitive information or making fraudulent payments."
                                 quizLink={undefined}
                             />
