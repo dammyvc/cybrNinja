@@ -34,7 +34,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
     const { user, isLoading: authLoading, error: authError } = useUser();
-    const [dbUser, setDbUser] = useState<any | null>(null);
+    const [dbUser, setDbUser] = useState<UserData | null>(null);
     const [accessToken, setAccessToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

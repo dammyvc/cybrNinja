@@ -14,8 +14,10 @@ export default handleAuth({
                     scope: 'openid profile read:user',
                 },
             });
-        } catch (error: any) {
-            res.status(error.status || 500).end(error.message);
+        } catch (error: unknown) {
+            const err = error instanceof Error ? error : new Error('Unknown error');
+            res.status('status' in err && typeof err.status === 'number' ? err.status : 500)
+               .end(err.message);
         }
     },
     async logout(req: NextApiRequest, res: NextApiResponse) {
