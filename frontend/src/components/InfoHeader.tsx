@@ -17,7 +17,7 @@ export const InfoHeader = () => {
         setGreeting(getGreeting());
     }, []);
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div>Please wait, getting user data...</div>;
     if (error) return <div>{error}</div>;
 
     return (

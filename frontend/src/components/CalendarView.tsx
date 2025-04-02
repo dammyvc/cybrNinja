@@ -41,7 +41,6 @@ export const CalendarView = ({ quizLink }: QuizCardProps) => {
             .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
     };
 
-    // Check if the user has answered today
     useEffect(() => {
         const checkTriviaStatus = async () => {
             if (!dbUser || !accessToken) return;

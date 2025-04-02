@@ -6,6 +6,8 @@ import "../globals.css";
 import { InfoHeader } from "@/components/InfoHeader";
 import { QuizProvider } from "@/contexts/QuizContext";
 import { UserProvider } from "@/contexts/UserContext";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const soraFont = Sora({
     subsets: ["latin"],
@@ -39,7 +41,20 @@ export default function DashboardLayout({
                 </div>
                 <div className="overflow-y-scroll w-full">
                     <InfoHeader />
-                    <QuizProvider>{children}</QuizProvider>
+                    <QuizProvider>{children}
+                    <ToastContainer
+                            position="top-right"
+                            autoClose={5000}
+                            hideProgressBar={false}
+                            newestOnTop={false}
+                            closeOnClick
+                            rtl={false}
+                            pauseOnFocusLoss
+                            draggable
+                            pauseOnHover
+                            theme="light"
+                        />
+                    </QuizProvider>
                 </div>
                 <ThemeSwitcher />
             </div>

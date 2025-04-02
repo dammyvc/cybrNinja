@@ -16,8 +16,8 @@ export const HowItWorks = () => {
                         "group w-full cursor-pointer overflow-hidden relative card h-96 rounded-md shadow-xl mx-auto flex flex-col justify-end p-4 border border-transparent dark:border-neutral-800",
                         "bg-[url(https://images.unsplash.com/photo-1476842634003-7dcca8f832de?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1650&q=80)] bg-cover",
                         // Preload hover image by setting it in a pseudo-element
-                        "before:bg-[url(https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNWlodTF3MjJ3NnJiY3Rlc2J0ZmE0c28yeWoxc3gxY2VtZzA5ejF1NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/syEfLvksYQnmM/giphy.gif)] before:fixed before:inset-0 before:opacity-0 before:z-[-1]",
-                        "hover:bg-[url(https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNWlodTF3MjJ3NnJiY3Rlc2J0ZmE0c28yeWoxc3gxY2VtZzA5ejF1NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/syEfLvksYQnmM/giphy.gif)]",
+                        "before:bg-[url(https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExaXBtdWE5dWtkb3o5YzB5Y296cXo2NWF4ZWt6MnE5aTRrams1MGNmbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/jyzjPmdKLm2fslKG8C/giphy.gif)] before:fixed before:inset-0 before:opacity-0 before:z-[-1]",
+                        "hover:bg-[url(https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExaXBtdWE5dWtkb3o5YzB5Y296cXo2NWF4ZWt6MnE5aTRrams1MGNmbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/jyzjPmdKLm2fslKG8C/giphy.gif)]",
                         "hover:after:content-[''] hover:after:absolute hover:after:inset-0 hover:after:bg-black hover:after:opacity-50",
                         "transition-all duration-500"
                     )}
@@ -27,7 +27,7 @@ export const HowItWorks = () => {
                             Sign Up & Get Started
                         </h1>
                         <p className="font-normal text-base text-gray-50 relative my-4">
-                            Create your free account and set up your profile. No experience? No problem! CyberDojang will tailor the experience to your skill level.
+                            Create your free account and set up your profile. No experience? No problem! CybrNinja will tailor the experience to your skill level.
                         </p>
                     </div>
                 </div>
@@ -37,8 +37,8 @@ export const HowItWorks = () => {
                         "group w-full cursor-pointer overflow-hidden relative card h-96 rounded-md shadow-xl mx-auto flex flex-col justify-end p-4 border border-transparent dark:border-neutral-800",
                         "bg-[url(https://images.unsplash.com/photo-1476842634003-7dcca8f832de?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1650&q=80)] bg-cover",
                         // Preload hover image by setting it in a pseudo-element
-                        "before:bg-[url(https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNWlodTF3MjJ3NnJiY3Rlc2J0ZmE0c28yeWoxc3gxY2VtZzA5ejF1NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/syEfLvksYQnmM/giphy.gif)] before:fixed before:inset-0 before:opacity-0 before:z-[-1]",
-                        "hover:bg-[url(https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNWlodTF3MjJ3NnJiY3Rlc2J0ZmE0c28yeWoxc3gxY2VtZzA5ejF1NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/syEfLvksYQnmM/giphy.gif)]",
+                        "before:bg-[url(https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExbmpsdjJuanF1eTF5ZDE2dzB4YjJ1cXZ4NDE2ZTUxM2FwODh6d2FhcyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/0huDAdTHsuzT50D4in/giphy.gif)] before:fixed before:inset-0 before:opacity-0 before:z-[-1]",
+                        "hover:bg-[url(https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExbmpsdjJuanF1eTF5ZDE2dzB4YjJ1cXZ4NDE2ZTUxM2FwODh6d2FhcyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/0huDAdTHsuzT50D4in/giphy.gif)]",
                         "hover:after:content-[''] hover:after:absolute hover:after:inset-0 hover:after:bg-black hover:after:opacity-50",
                         "transition-all duration-500"
                     )}
@@ -48,7 +48,7 @@ export const HowItWorks = () => {
                             Train with AI-Powered Quizzes
                         </h1>
                         <p className="font-normal text-base text-gray-50 relative my-4">
-                            Take interactive phishing detection quizzes that adapt to your performance. Learn through real-time feedback and AI-driven coaching.
+                            Take interactive cybersecurity quizzes that adapt to your performance. Learn through real-time feedback and AI-driven coaching.
                         </p>
                     </div>
                 </div>
@@ -58,8 +58,8 @@ export const HowItWorks = () => {
                         "group w-full cursor-pointer overflow-hidden relative card h-96 rounded-md shadow-xl mx-auto flex flex-col justify-end p-4 border border-transparent dark:border-neutral-800",
                         "bg-[url(https://images.unsplash.com/photo-1476842634003-7dcca8f832de?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1650&q=80)] bg-cover",
                         // Preload hover image by setting it in a pseudo-element
-                        "before:bg-[url(https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNWlodTF3MjJ3NnJiY3Rlc2J0ZmE0c28yeWoxc3gxY2VtZzA5ejF1NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/syEfLvksYQnmM/giphy.gif)] before:fixed before:inset-0 before:opacity-0 before:z-[-1]",
-                        "hover:bg-[url(https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNWlodTF3MjJ3NnJiY3Rlc2J0ZmE0c28yeWoxc3gxY2VtZzA5ejF1NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/syEfLvksYQnmM/giphy.gif)]",
+                        "before:bg-[url(https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExMGl4Z3hsbnMxZjN5c24xaTZxMWRtbHd5YWxub2FpNWlvaXB2N3JveSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qUDenOaWmXImQ/giphy.gif)] before:fixed before:inset-0 before:opacity-0 before:z-[-1]",
+                        "hover:bg-[url(https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExMGl4Z3hsbnMxZjN5c24xaTZxMWRtbHd5YWxub2FpNWlvaXB2N3JveSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qUDenOaWmXImQ/giphy.gif)]",
                         "hover:after:content-[''] hover:after:absolute hover:after:inset-0 hover:after:bg-black hover:after:opacity-50",
                         "transition-all duration-500"
                     )}

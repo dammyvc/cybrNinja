@@ -1,73 +1,50 @@
-"use client"
+"use client";
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useState, useEffect } from "react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { useUserData } from "@/contexts/UserContext";
 
-const data = [
-    {
-        name: 'Jan',
-        questions: 10,
-
-
-    },
-    {
-        name: 'Feb',
-        questions: 30,
-
-    },
-    {
-        name: 'Mar',
-        questions: 50,
-
-    },
-    {
-        name: 'Apr',
-        questions: 55,
-
-    },
-    {
-        name: 'May',
-        questions: 10,
-
-    },
-    {
-        name: 'Jun',
-        questions: 5,
-
-    },
-    {
-        name: 'Jul',
-        questions: 60,
-
-    },
-    {
-        name: 'Aug',
-        questions: 65,
-
-    },
-    {
-        name: 'Sep',
-        questions: 40,
-
-    },
-    {
-        name: 'Oct',
-        questions: 80,
-
-    },
-    {
-        name: 'Nov',
-        questions: 85,
-
-    },
-    {
-        name: 'Dec',
-        questions: 100,
-
-    },
-];
-
+interface ChartData {
+    name: string;
+    questions: number;
+}
 
 export const QuizChart = () => {
+    const [data, setData] = useState<ChartData[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+    const { dbUser } = useUserData();
+
+    useEffect(() => {
+        const fetchQuizStatistics = async () => {
+            if (!dbUser) return;
+
+            try {
+                const res = await fetch("/api/auth/quiz-statistics", {
+                    method: "GET",
+                    credentials: "include",
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || "Failed to fetch quiz statistics");
+                }
+
+                const { data }: { data: ChartData[] } = await res.json();
+                setData(data);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : "Unknown error");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchQuizStatistics();
+    }, [dbUser]);
+
+    if (loading) return <div>Loading chart...</div>;
+    if (error) return <div>Error: {error}</div>;
+
     return (
         <div className="bg-white dark:bg-dark rounded-xl w-full h-full p-4 shadow-md border-t-4 border-primary">
             <div className="flex justify-between items-center pb-2">
@@ -86,16 +63,14 @@ export const QuizChart = () => {
                     }}
                 >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill:"#d1d5db"}} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fill:"#d1d5db"}} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#d1d5db" }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: "#d1d5db" }} label={{ value: "Questions Answered", angle: -90, position: "insideLeft" }} />
                     <Tooltip />
-                    <Legend align='center' verticalAlign='top' wrapperStyle={{ paddingTop: "10px", paddingBottom: "30px"}} />
-                    
+                    <Legend align="center" verticalAlign="top" wrapperStyle={{ paddingTop: "10px", paddingBottom: "30px" }} />
                     <Line type="monotone" dataKey="questions" stroke="#15D17F" strokeWidth={2} />
                 </LineChart>
             </ResponsiveContainer>
-
         </div>
-    )
-}
+    );
+};
 

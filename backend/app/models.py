@@ -37,7 +37,6 @@ def get_user_from_db(mongo_id):
                 "avatar": 1, 
                 "xp": 1, 
                 "rank_id": 1, 
-                "streak_id": 1, 
                 "achievements": 1, 
                 "past_mistakes": 1,
                 "resource_visits": 1,
@@ -60,15 +59,10 @@ def get_rank_details(rank_id):
         app_logger.error(f"Error fetching rank details for rank_id {rank_id}: {str(e)}")
         return None
 
-def get_streak_details(streak_id):
-    if not streak_id:
-        return None
-    try:
-        streak = mongo.db.streaks.find_one({"streak_id": streak_id}, {"_id": 0})
-        return streak
-    except Exception as e:
-        app_logger.error(f"Error fetching streak details for streak_id {streak_id}: {str(e)}")
-        return None
+def has_achievement(user, achievement_id):
+    if not user or "achievements" not in user:
+        return False
+    return any(ach["achievement_id"] == achievement_id for ach in user["achievements"])
 
 def get_achievement_details(achievement_id):
     try:
@@ -82,8 +76,8 @@ def get_leaderboard_position(user_id):
     try:
         leaderboard = list(mongo.db.leaderboards.find().sort("xp", -1))
         for position, entry in enumerate(leaderboard, start=1):
-            user_id_int = int(entry["user_id"])
-            if user_id_int == user_id:
+            
+            if entry["user_id"] == user_id:
                 return position
         return None
     except Exception as e:
@@ -92,8 +86,7 @@ def get_leaderboard_position(user_id):
 
 def get_quizzes_taken(user_id):
     try:
-        user_id_str = str(user_id)
-        count = mongo.db.attempts.count_documents({"user_id": user_id_str})
+        count = mongo.db.attempts.count_documents({"user_id": user_id})
         return count
     except Exception as e:
         app_logger.error(f"Error counting quizzes taken for user_id {user_id}: {str(e)}")
@@ -119,7 +112,6 @@ def create_quiz(mongo_id):
         "quiz_id": quiz_id,
         "title": "Phishing Quiz",
         "difficulty_level": difficulty,
-        "time_limit": 600,
         "created_at": datetime.utcnow().isoformat(),
         "questions": questions
     }
@@ -148,23 +140,12 @@ def save_attempt(mongo_id, quiz_id, question_attempts, time_taken):
         "question_attempts": question_attempts,
         "score": score,
         "xp_earned": xp_earned,
-        "streak_bonus": 0,
         "completed_at": datetime.utcnow().isoformat(),
         "time_taken": time_taken
     }
     mongo.db.attempts.insert_one(attempt)
 
-    new_xp = user["xp"] + xp_earned
-    current_rank = get_rank_details(user["rank_id"])
-    new_rank = current_rank
-
-    next_ranks = mongo.db.ranks.find({"xp_required": {"$gt": current_rank["xp_required"]}}).sort("xp_required", 1)
-    for rank in next_ranks:
-        if new_xp >= rank["xp_required"]:
-            new_rank = rank
-        else:
-            break
-
+    # Update past mistakes
     past_mistakes = user.get("past_mistakes", [])
     for attempt in question_attempts:
         if not attempt["is_correct"]:
@@ -173,27 +154,14 @@ def save_attempt(mongo_id, quiz_id, question_attempts, time_taken):
 
     mongo.db.users.update_one(
         {"_id": ObjectId(mongo_id)},
-        {"$set": {"xp": new_xp, "rank_id": new_rank["rank_id"], "past_mistakes": past_mistakes}}
+        {"$set": {"past_mistakes": past_mistakes}}
     )
 
-    mongo.db.leaderboards.update_one(
-        {"user_id": str(user["user_id"])},
-        {
-            "$set": {
-                "xp_total": new_xp,
-                "last_updated": datetime.utcnow().isoformat()
-            }
-        },
-        upsert=True
-    )
-    
-    return {"attempt_id": attempt_id, "xp_earned": xp_earned, "new_rank": new_rank["title"]}
+    return {"attempt_id": attempt_id, "xp_earned": xp_earned}
 
 def update_leaderboard_positions():
     try:
-        
         leaderboard_entries = list(mongo.db.leaderboards.find().sort([("xp_total", -1), ("last_updated", 1)]))
-        
         
         for position, entry in enumerate(leaderboard_entries, start=1):
             mongo.db.leaderboards.update_one(
@@ -208,3 +176,79 @@ def update_leaderboard_positions():
         app_logger.info(f"Updated {len(leaderboard_entries)} leaderboard positions")
     except Exception as e:
         app_logger.error(f"Error updating leaderboard positions: {str(e)}")
+
+def update_user_achievements(mongo_id, new_achievements):
+    try:
+        for achievement in new_achievements:
+            mongo.db.users.update_one(
+                {"_id": mongo_id},
+                {
+                    "$push": {
+                        "achievements": {
+                            "achievement_id": achievement["achievement_id"],
+                            "earned_at": datetime.utcnow().isoformat()
+                        }
+                    },
+                    "$inc": {"xp": achievement["xp_reward"]}
+                }
+            )
+            app_logger.info(f"Achievement {achievement['achievement_id']} awarded to user {mongo_id}")
+    except Exception as e:
+        app_logger.error(f"Error updating achievements for user {mongo_id}: {str(e)}")
+        raise
+
+def check_achievements_after_quiz(mongo_id, quiz_data, attempt_data):
+    user = get_user_from_db(mongo_id)
+    if not user:
+        raise ValueError("User not found")
+
+    new_achievements = []
+    quizzes_taken = get_quizzes_taken(user["user_id"])
+    correct_answers = sum(1 for attempt in attempt_data["question_attempts"] if attempt["is_correct"])
+    total_questions = len(attempt_data["question_attempts"])
+    is_phishing_quiz = quiz_data["quiz"]["title"] == "Phishing Quiz"
+
+    # Achievement: First Steps (Completed your first quiz)
+    if quizzes_taken == 1 and not has_achievement(user, "ach_001"):
+        achievement = get_achievement_details("ach_001")
+        new_achievements.append(achievement)
+
+    # Achievement: Quiz Novice (Completed 5 quizzes)
+    if quizzes_taken >= 5 and not has_achievement(user, "ach_002"):
+        achievement = get_achievement_details("ach_002")
+        new_achievements.append(achievement)
+
+    # Achievement: Quiz Master (Completed 20 quizzes)
+    if quizzes_taken >= 20 and not has_achievement(user, "ach_003"):
+        achievement = get_achievement_details("ach_003")
+        new_achievements.append(achievement)
+
+    
+    if is_phishing_quiz and correct_answers == total_questions and not has_achievement(user, "ach_006"):
+        achievement = get_achievement_details("ach_006")
+        new_achievements.append(achievement)
+
+    
+    if new_achievements:
+        update_user_achievements(mongo_id, new_achievements)
+
+    return new_achievements
+
+def check_achievements_after_rank_update(mongo_id, new_rank):
+    
+    user = get_user_from_db(mongo_id)
+    if not user:
+        raise ValueError("User not found")
+
+    new_achievements = []
+
+    # Achievement: Rank Up (Reached the rank of Genin)
+    if new_rank == "Chunin" and not has_achievement(user, "ach_007"):
+        achievement = get_achievement_details("ach_007")
+        new_achievements.append(achievement)
+
+    # Update the user's achievements if any new ones were earned
+    if new_achievements:
+        update_user_achievements(mongo_id, new_achievements)
+
+    return new_achievements

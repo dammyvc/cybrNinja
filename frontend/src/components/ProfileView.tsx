@@ -1,17 +1,16 @@
 import Image from "next/image";
 import { useUserData } from "@/contexts/UserContext";
-import { useUser } from "@auth0/nextjs-auth0/client";
 
 export default function ProfileView() {
     const { dbUser, loading, error } = useUserData();
-    const { user } = useUser(); // Still use Auth0 for user picture and name
+
 
     if (loading) return <div>Loading...</div>;
     if (error) return <div>{error}</div>;
     if (!dbUser) return <div>No profile data available</div>;
 
     return (
-        user && (
+        dbUser && (
             <div className="space-y-6">
                 <div className="flex items-center space-x-4">
                     <Image
@@ -55,7 +54,7 @@ export default function ProfileView() {
                                     height={16}
                                     className="w-16 h-16 mx-auto"
                                 />
-                                <p className="font-semibold">{achievement.details?.title || "Unknown Achievement"}</p>
+                                <p className="font-semibold">{achievement.details?.name || "Unknown Achievement"}</p>
                                 <p className="text-sm text-gray-600">{achievement.details?.description || ""}</p>
                             </div>
                         )) || <p>No achievements yet.</p>}

@@ -3,12 +3,11 @@ import { useId } from "react";
 
 export const Features = () => {
   return <section className="bg-white dark:bg-dark flex justify-center flex-col">
-    <div className="container">
-      <h2 className="container text-4xl font-semibold text-center leading-tight text-black dark:text-white pt-10">
+    
+    <div className="py-10 lg:py-20 container">
+      <h2 className="container text-4xl font-semibold text-center leading-tight text-black dark:text-white pb-10">
         Features
       </h2>
-    </div>
-    <div className="py-10 lg:py-20 container">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-10 md:gap-2 max-w-7xl mx-auto">
         {grid.map((feature) => (
           <div
@@ -33,14 +32,14 @@ export default Features;
 
 const grid = [
   {
-    title: "AI-Driven Phishing Quizzes",
+    title: "AI-Driven Cybersecurity Quizzes",
     description:
-      "Test your ability to detect phishing attempts with AI-powered quizzes that simulate real-world attacks. Learn from detailed feedback after each attempt.",
+      "Test your ability to detect cybersecurity threats with AI-powered quizzes that simulate real-world attacks. Learn from detailed feedback after each attempt.",
   },
   {
     title: "Adaptive Difficulty Levels",
     description:
-      "The platform adjusts quiz difficulty based on your performance, ensuring a personalized learning experience that keeps you engaged and improving.",
+      "The platform adjusts quiz difficulty based on your performance, ensuring a personalised learning experience that keeps you engaged and improving.",
   },
   {
     title: "Real-Time Coaching",

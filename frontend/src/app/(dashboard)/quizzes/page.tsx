@@ -24,7 +24,7 @@ export default function Quizzes() {
                             <QuizCards
                                 imageSrc="/assets/images/misdeliveryimg.jpg"
                                 title="Misdelivery Quizzes"
-                                description="Test your ability to avoid accidentally sending sensitive information to the wrong recipient."
+                                description="Avoid accidentally sending sensitive information to the wrong recipient."
                                 moreDescription="Misdelivery is the act of accidentally sending sensitive information to the wrong recipient, typically through email, like typing the wrong email address or selecting the incorrect recipient from an auto-complete list."
                                 quizLink={undefined}
                             />

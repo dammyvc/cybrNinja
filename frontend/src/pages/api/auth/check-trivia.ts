@@ -5,7 +5,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(405).json({ error: "Method not allowed" });
     }
 
-    // Check for the Authorization header
     const authHeader = req.headers.authorization;
     if (!authHeader) {
         return res.status(401).json({ error: "Authorization header is missing" });

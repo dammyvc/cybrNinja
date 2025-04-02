@@ -184,8 +184,8 @@ export const SidebarLink = ({
     const isActive = pathname === link.href;
 
     const handleClick = () => {
-        // Close sidebar on mobile when link is clicked
-        if (window.innerWidth < 768) { // md breakpoint
+
+        if (window.innerWidth < 768) {
             setOpen(false);
         }
     };
@@ -301,7 +301,7 @@ export const MainSidebar = () => {
         }
     }, [pathname]);
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div>Please wait, getting user data...</div>;
     if (error) return <div>{error}</div>;
 
     return (

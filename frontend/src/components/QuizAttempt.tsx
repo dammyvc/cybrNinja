@@ -7,6 +7,7 @@ import { Dialog, DialogTitle, DialogContent, DialogHeader, DialogFooter } from "
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuiz } from "@/contexts/QuizContext";
 import { useUserData } from "@/contexts/UserContext";
+import { toast } from "react-toastify";
 
 interface QuizResult {
     question: string;
@@ -38,7 +39,7 @@ export default function QuizAttempt() {
     const [results, setResults] = useState<QuizResult[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [startTime, setStartTime] = useState<Date | null>(null); // Add startTime state
+    const [startTime, setStartTime] = useState<Date | null>(null); 
 
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -46,7 +47,7 @@ export default function QuizAttempt() {
     const { setQuizScore } = useQuiz();
     const { dbUser } = useUserData();
 
-    // Prevent browser navigation
+    
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             e.preventDefault();
@@ -86,7 +87,7 @@ export default function QuizAttempt() {
 
                 const { questions }: { questions: QuizQuestion[] } = await res.json();
                 setQuestions(questions);
-                setStartTime(new Date()); // Set the start time when questions are loaded
+                setStartTime(new Date()); 
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Unknown error");
             } finally {
@@ -122,9 +123,9 @@ export default function QuizAttempt() {
     };
 
     const calculateTimeSpent = (): number => {
-        if (!startTime) return 0; // Return 0 if startTime is not set
+        if (!startTime) return 0; 
         const endTime = new Date();
-        const timeSpent = (endTime.getTime() - startTime.getTime()) / 1000; // Time in seconds
+        const timeSpent = Math.round((endTime.getTime() - startTime.getTime()) / 1000); 
         return timeSpent;
     };
 
@@ -134,10 +135,10 @@ export default function QuizAttempt() {
             quiz_id: quizId,
             question_attempts: results.map((r, i) => ({
                 question_id: questions[i].question_id,
-                user_answer: r.selectedOption,
+                user_answer: String(r.selectedOption),
                 is_correct: r.isCorrect,
             })),
-            time_taken: calculateTimeSpent(), // Use the updated calculateTimeSpent
+            time_taken: calculateTimeSpent(),
         };
     
         try {
@@ -153,7 +154,8 @@ export default function QuizAttempt() {
                 throw new Error(errorData.error || "Failed to submit attempt");
             }
     
-            const { xp_earned, new_rank } = await res.json();
+            const { xp_earned, quiz_xp, achievement_xp, new_rank, new_achievements } = await res.json();
+    
             const quizScore = {
                 totalQuestions: questions.length,
                 correctAnswers: results.filter((r) => r.isCorrect).length + (isCorrect ? 1 : 0),
@@ -167,12 +169,57 @@ export default function QuizAttempt() {
                 results: [...results, { question: currentQuestion.text, isCorrect, selectedOption }],
             };
             setQuizScore(quizScore);
+    
+            
+            toast.success(
+                `Quiz Completed! 🎉\nYou earned ${quiz_xp} XP from the quiz.`,
+                {
+                    position: "top-right",
+                    autoClose: 10000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                }
+            );
+    
+            
+            if (new_achievements && new_achievements.length > 0) {
+                new_achievements.forEach((achievement: any) => {
+                    toast.success(
+                        `Achievement Unlocked: ${achievement.name}! 🎉\n${achievement.description} (+${achievement.xp_reward} XP)`,
+                        {
+                            position: "top-right",
+                            autoClose: 10000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                        }
+                    );
+                });
+            }
+    
+            
+            toast.info(
+                `Total XP Earned: ${xp_earned} 🎉\n(Quiz: ${quiz_xp} + Achievements: ${achievement_xp})`,
+                {
+                    position: "top-right",
+                    autoClose: 10000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                }
+            );
+    
             router.push(`/quizzes/phishing_quiz/quiz-results?xp=${xp_earned}&rank=${new_rank}`);
         } catch (err) {
             console.error("Error submitting attempt:", err);
             setError(err instanceof Error ? err.message : "Failed to submit quiz attempt");
         }
     };
+    
 
     const handleExitQuiz = () => {
         setShowExitModal(true);

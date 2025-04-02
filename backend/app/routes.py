@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app
-from .models import mongo, get_user_from_db, get_rank_details, get_streak_details, get_achievement_details
+from .models import mongo, get_user_from_db, get_rank_details, get_achievement_details, update_user_achievements, check_achievements_after_quiz, check_achievements_after_rank_update
 from .models import get_leaderboard_position, get_quizzes_taken, create_quiz, get_quiz, save_attempt, update_leaderboard_positions
 from .auth import requires_auth
 import re
@@ -39,7 +39,7 @@ def get_user():
         return jsonify({"error": "User not found"}), 404
     
     user["rank"] = get_rank_details(user["rank_id"]) if user["rank_id"] else None
-    user["streak"] = get_streak_details(user["streak_id"]) if user["streak_id"] else None
+    user["achievements_count"] = len(user["achievements"]) if "achievements" in user else 0
     if "achievements" in user and user["achievements"]:
         for achievement in user["achievements"]:
             achievement["details"] = get_achievement_details(achievement["achievement_id"])
@@ -52,14 +52,12 @@ def get_user():
 @app.route("/api/leaderboard", methods=["GET"])
 def get_leaderboard():
     try:
-        
         leaderboard_entries = list(mongo.db.leaderboards.find().sort("rank_position", 1).limit(10))
 
-        
         leaderboard_data = []
         for entry in leaderboard_entries:
-            user_id_int = int(entry["user_id"])
-            user = mongo.db.users.find_one({"user_id": user_id_int}, {"username": 1})
+            user = mongo.db.users.find_one({"user_id": entry["user_id"]}, {"username": 1}) 
+            
             leaderboard_data.append({
                 "rank": entry["rank_position"],
                 "name": f"@{user['username']}" if user else f"@{entry['user_id']}",
@@ -172,24 +170,108 @@ def submit_attempt():
         app_logger.error(f"Invalid sub format or ObjectId: {payload['sub']} - {str(e)}")
         return jsonify({"error": "Invalid user ID format"}), 400
 
-    data = request.json
-    try:
-        result = save_attempt(
-            mongo_id=mongo_id,
-            quiz_id=data["quiz_id"],
-            question_attempts=data["question_attempts"],
-            time_taken=data["time_taken"]
-        )
-        return jsonify(result)
-    except ValueError as e:
-        app_logger.error(f"Error saving attempt: {str(e)}")
-        return jsonify({"error": str(e)}), 400
+    attempt_data = request.get_json()
+    if not attempt_data or "quiz_id" not in attempt_data or "question_attempts" not in attempt_data:
+        return jsonify({"error": "Invalid attempt data"}), 400
 
-# Endpoint to sync existing users to the leaderboard
+    try:
+        # Save the quiz attempt
+        user = get_user_from_db(mongo_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        attempt_data["user_id"] = user["user_id"]
+        attempt_data["created_at"] = datetime.utcnow().isoformat()
+        attempt_result = save_attempt(
+            mongo_id=mongo_id,
+            quiz_id=attempt_data["quiz_id"],
+            question_attempts=attempt_data["question_attempts"],
+            time_taken=attempt_data["time_taken"]
+        )
+
+        # Calculate XP earned from the quiz
+        quiz_xp_earned = attempt_result["xp_earned"]
+
+        # Update user's XP with quiz XP
+        mongo.db.users.update_one(
+            {"_id": mongo_id},
+            {"$inc": {"xp": quiz_xp_earned}}
+        )
+
+        # Check for quiz-related achievements
+        quiz_data = get_quiz(attempt_data["quiz_id"])
+        if not quiz_data:
+            return jsonify({"error": "Quiz not found"}), 404
+
+        new_quiz_achievements = check_achievements_after_quiz(mongo_id, quiz_data, attempt_data)
+
+        # Refresh user data after quiz XP update
+        user = get_user_from_db(mongo_id)
+
+        # Check for rank-related achievements
+        current_rank = get_rank_details(user["rank_id"])
+        new_rank = current_rank["title"]
+        for rank in mongo.db.ranks.find({"xp_threshold": {"$lte": user["xp"]}}, {"_id": 0}).sort("xp_threshold", -1):
+            new_rank = rank["title"]
+            mongo.db.users.update_one(
+                {"_id": mongo_id},
+                {"$set": {"rank_id": rank["rank_id"]}}
+            )
+            break
+
+        new_rank_achievements = check_achievements_after_rank_update(mongo_id, new_rank)
+
+        # Combine all new achievements
+        new_achievements = new_quiz_achievements + new_rank_achievements
+
+        # Calculate total achievement XP
+        achievement_xp = sum(ach["xp_reward"] for ach in new_achievements)
+
+        # Update user's XP with achievement XP
+        if achievement_xp > 0:
+            mongo.db.users.update_one(
+                {"_id": mongo_id},
+                {"$inc": {"xp": achievement_xp}}
+            )
+
+        # Refresh user data after all XP updates
+        user = get_user_from_db(mongo_id)
+
+        # Update leaderboard with total XP
+        total_xp = user["xp"]
+        mongo.db.leaderboards.update_one(
+            {"user_id": user["user_id"]},
+            {
+                "$set": {
+                    "xp_total": total_xp,
+                    "last_updated": datetime.utcnow().isoformat()
+                }
+            },
+            upsert=True
+        )
+
+        # Update leaderboard positions
+        update_leaderboard_positions()
+
+        # Calculate total XP earned for the response
+        total_xp_earned = quiz_xp_earned + achievement_xp
+
+        return jsonify({
+            "xp_earned": total_xp_earned,  # Total XP (quiz + achievements)
+            "quiz_xp": quiz_xp_earned,    # Quiz XP for clarity
+            "achievement_xp": achievement_xp,  # Achievement XP for clarity
+            "new_rank": new_rank,
+            "new_achievements": new_achievements
+        })
+    except Exception as e:
+        app_logger.error(f"Error submitting quiz attempt: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/leaderboard/sync", methods=["POST"])
 def sync_leaderboard():
     try:
-        # Fetch all users
+        
         users = mongo.db.users.find({}, {"user_id": 1, "xp": 1})
         count = 0
 
@@ -202,13 +284,13 @@ def sync_leaderboard():
             if not existing_entry:
                 # Generate a unique leaderboard_id
                 leaderboard_count = mongo.db.leaderboards.count_documents({})
-                leaderboard_id = f"lb_{leaderboard_count + 1}"
+                leaderboard_id = f"lb_{user_id}"
 
                 # Insert the user into the leaderboard
                 mongo.db.leaderboards.insert_one({
                     "leaderboard_id": leaderboard_id,
                     "user_id": user_id,
-                    "rank_position": 0,  # Will be updated by update_leaderboard_positions
+                    "rank_position": 0,  
                     "xp_total": xp,
                     "last_updated": datetime.utcnow().isoformat()
                 })
@@ -222,7 +304,7 @@ def sync_leaderboard():
         app_logger.error(f"Error syncing leaderboard: {str(e)}")
         return jsonify({"error": "Failed to sync leaderboard"}), 500
 
-# Endpoint to trigger leaderboard position update
+
 @app.route("/api/leaderboard/update-positions", methods=["POST"])
 def trigger_leaderboard_update():
     try:
@@ -276,8 +358,10 @@ def check_trivia():
             return jsonify({"error": "User not found"}), 404
 
         last_trivia_date = user.get("last_trivia_date")
+
+        
         if not last_trivia_date:
-            return jsonify({"hasAnsweredToday": false})
+            return jsonify({"hasAnsweredToday": False})
 
         last_date = datetime.fromisoformat(last_trivia_date.split("T")[0])
         today = datetime.utcnow()
@@ -342,3 +426,75 @@ def update_xp():
     except Exception as e:
         app_logger.error(f"Error updating XP: {str(e)}")
         return jsonify({"error": "Failed to update XP"}), 500
+
+
+@quiz_bp.route("/quizzes/statistics", methods=["GET"])
+@requires_auth
+def get_quiz_statistics():
+    payload = request.user
+    try:
+        mongo_id_str = payload["sub"].split("|")[1]
+        mongo_id = ObjectId(mongo_id_str)
+    except (IndexError, ValueError) as e:
+        app_logger.error(f"Invalid sub format or ObjectId: {payload['sub']} - {str(e)}")
+        return jsonify({"error": "Invalid user ID format"}), 400
+
+    try:
+        user = get_user_from_db(mongo_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        user_id_str = str(user["user_id"])
+
+        # Get the year from query parameters (default to current year)
+        year = int(request.args.get("year", datetime.utcnow().year))
+
+        # Fetch quiz attempts for the user within the specified year
+        attempts = mongo.db.attempts.find(
+            {
+                "user_id": user_id_str,
+                "created_at": {
+                    "$gte": f"{year}-01-01T00:00:00",
+                    "$lt": f"{year+1}-01-01T00:00:00"
+                }
+            },
+            {"_id": 0, "created_at": 1}
+        )
+
+        
+        monthly_stats = {}
+        for attempt in attempts:
+            try:
+                
+                if "created_at" not in attempt or not isinstance(attempt["created_at"], str):
+                    app_logger.warning(f"Invalid or missing created_at in attempt: {attempt}")
+                    continue
+
+                
+                timestamp = attempt["created_at"]
+                if not timestamp.endswith("Z") and "+" not in timestamp:
+                    timestamp += "+00:00"
+
+                
+                created_at = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+                month_key = created_at.strftime("%b") 
+                monthly_stats[month_key] = monthly_stats.get(month_key, 0) + 1
+            except ValueError as ve:
+                app_logger.error(f"Invalid timestamp format in attempt: {attempt['created_at']} - {str(ve)}")
+                continue
+
+        # Convert to the format expected by the frontend
+        months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        data = [
+            {
+                "name": month,
+                "questions": (monthly_stats.get(month, 0) * 10)
+            }
+            for month in months
+        ]
+
+        return jsonify({"data": data})
+
+    except Exception as e:
+        app_logger.error(f"Error fetching quiz statistics for user_id {mongo_id}: {str(e)}")
+        return jsonify({"error": "Failed to fetch quiz statistics"}), 500

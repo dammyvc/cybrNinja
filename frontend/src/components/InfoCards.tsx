@@ -12,7 +12,7 @@ const iconMap: Record<string, React.ReactNode> = {
     "Experience Points": <IconStars className="text-primary" />,
     "Leaderboard Position": <IconBadgeFilled className="text-secondary" />,
     "No. of Quizzes Taken": <IconShieldCheckFilled className="text-accent" />,
-    "Streak": <IconTrendingUp3 className="text-fifth" />,
+    "Achievements": <IconTrendingUp3 className="text-fifth" />,
 };
 
 export const InfoCards = ({ type, value}: { type: string, value: string | number }) => {

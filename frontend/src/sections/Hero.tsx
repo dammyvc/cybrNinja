@@ -18,7 +18,7 @@ export const loginItems = [
 export const Hero = () => {
   return <section>
     <div className="container">
-      <div className="container">
+      <div className="py-40 lg:py-20 container">
         <BackgroundLines className="relative flex flex-col items-center justify-center">
 
           <h1 className="container text-4xl font-semibold text-center leading-tight text-black dark:text-white">
@@ -26,7 +26,7 @@ export const Hero = () => {
             
           </h1>
           <p className="text-center text-lg mt-8 sm:text-base">
-            Gamify your learning with AI-powered phishing quizzes, real-time coaching, and interactive challenges. Stay ahead of threats—level up your security skills today!
+            Gamify your learning with AI-powered cybersecurity quizzes, real-time coaching, and interactive challenges. Stay ahead of threats—level up your security skills today!
           </p>
           <div className="flex justify-center mt-10 z-10 mb-10">
             {loginItems.map(({ buttonVariant, name, href }) => (

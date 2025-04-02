@@ -10,7 +10,7 @@ import { LeaderBoard } from "@/components/LeaderBoard";
 function DashboardContent() {
     const { dbUser, loading, error } = useUserData();
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div>Please wait, getting user data...</div>;
     if (error) return <div>{error}</div>;
 
     return (
@@ -23,22 +23,18 @@ function DashboardContent() {
                         <InfoCards
                             type="Experience Points"
                             value={dbUser?.xp || 0}
-                             // Placeholder
                         />
                         <InfoCards
                             type="Leaderboard Position"
                             value={dbUser?.leaderboard_position || "N/A"}
-                             // Placeholder
                         />
                         <InfoCards
                             type="No. of Quizzes Taken"
                             value={dbUser?.quizzes_taken || 0}
-                             // Placeholder
                         />
                         <InfoCards
-                            type="Streak"
-                            value={dbUser?.streak?.current_streak || 0}
-                             // Placeholder
+                            type="Achievements"
+                            value={dbUser?.achievements_count || 0}
                         />
                     </div>
                     {/* MIDDLE SECTION QUIZ CARDS */}
@@ -54,7 +50,7 @@ function DashboardContent() {
                             <QuizCards
                                 imageSrc="/assets/images/misdeliveryimg.jpg"
                                 title="Misdelivery Quizzes"
-                                description="Test your ability to avoid accidentally sending sensitive information to the wrong recipient."
+                                description="Avoid accidentally sending sensitive information to the wrong recipient."
                                 moreDescription="Misdelivery is the act of accidentally sending sensitive information to the wrong recipient, typically through email, like typing the wrong email address or selecting the incorrect recipient from an auto-complete list."
                                 quizLink={undefined}
                             />

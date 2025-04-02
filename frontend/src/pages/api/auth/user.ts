@@ -3,7 +3,6 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     try {
-        // Get the access token from the request context
         const { accessToken } = await getAccessToken(req, res, {
             authorizationParams: {
                 audience: process.env.AUTH0_API_AUDIENCE,
