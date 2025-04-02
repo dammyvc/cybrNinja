@@ -25,24 +25,48 @@ export default function ProfileEdit() {
     const [success, setSuccess] = useState<string>("");
 
     // Password requirements check functions
-    const hasNoMoreThanTwoIdentical = (password: string) => {
-        return !/(.)\1{2,}/.test(password);
-    };
+    const hasNoMoreThanTwoIdentical = (password: string) => !/(.)\1{2,}/.test(password);
+    const hasSpecialCharacters = (password: string) => /[!@#$%^&*]/.test(password);
+    const hasMixedCaseAndNumbers = (password: string) => /[a-z]/.test(password) && /[A-Z]/.test(password) && /[0-9]/.test(password);
+    const hasMinLength = (password: string) => password.length >= 8;
 
-    const hasSpecialCharacters = (password: string) => {
-        return /[!@#$%^&*]/.test(password);
-    };
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                setError("Image size exceeds 5MB");
+                toast.error("Image size exceeds 5MB");
+                return;
+            }
 
-    const hasMixedCaseAndNumbers = (password: string) => {
-        return (
-            /[a-z]/.test(password) &&
-            /[A-Z]/.test(password) &&
-            /[0-9]/.test(password)
-        );
-    };
+            const uploadData = new FormData();
+            uploadData.append("avatar", file);
+            uploadData.append("username", formData.username);
+            uploadData.append("email", formData.email);
 
-    const hasMinLength = (password: string) => {
-        return password.length >= 8;
+            try {
+                const res = await fetch("/api/auth/update-profile", {
+                    method: "PUT",
+                    body: uploadData,
+                    credentials: "include",
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.error || "Failed to upload image");
+                }
+
+                setFormData((prev) => ({ ...prev, avatar: data.avatarUrl }));
+                setSuccess("Image uploaded successfully");
+                setError("");
+                toast.success("Image uploaded successfully!");
+            } catch (err) {
+                const errorMessage = err instanceof Error ? err.message : "Unknown error";
+                setError(`Error uploading image: ${errorMessage}`);
+                setSuccess("");
+                toast.error(errorMessage);
+            }
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -65,7 +89,6 @@ export default function ProfileEdit() {
         };
 
         if (formData.password) {
-            // Check all password requirements before submitting
             if (!hasNoMoreThanTwoIdentical(formData.password)) {
                 setError("Password cannot have more than 2 identical characters in a row");
                 return;
@@ -90,9 +113,7 @@ export default function ProfileEdit() {
         try {
             const res = await fetch("/api/auth/update-profile", {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(updateData),
                 credentials: "include",
             });
@@ -110,57 +131,18 @@ export default function ProfileEdit() {
             });
             setSuccess("Profile updated successfully");
             setError("");
-            setFormData(prev => ({
+            setFormData((prev) => ({
                 ...prev,
                 oldPassword: "",
                 password: "",
                 confirmPassword: "",
             }));
+            toast.success("Profile updated successfully!");
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
             setError(`Error updating profile: ${errorMessage}`);
             setSuccess("");
-        }
-    };
-
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                setError("Image size exceeds 5MB");
-                toast.error("Image size exceeds 5MB");
-                return;
-            }
-
-            const uploadData = new FormData();
-            uploadData.append("avatar", file);
-            
-
-            try {
-                const res = await fetch("/api/auth/update-profile", {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(uploadData),
-                    credentials: "include",
-                });
-
-                const data = await res.json();
-                if (!res.ok) {
-                    throw new Error(data.error || "Failed to upload image");
-                }
-
-                setFormData((prev) => ({ ...prev, avatar: data.avatarUrl }));
-                setSuccess("Image uploaded successfully");
-                setError("");
-                toast.success("Image uploaded successfully!");
-            } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : "Unknown error";
-                setError(`Error uploading image: ${errorMessage}`);
-                setSuccess("");
-                toast.error(errorMessage);
-            }
+            toast.error(errorMessage);
         }
     };
 
