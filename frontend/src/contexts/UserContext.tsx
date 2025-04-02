@@ -20,6 +20,8 @@ interface UserData {
     rank?: { title: string };
     leaderboard_position?: number;
     achievements?: Achievement[];
+    quizzes_taken?: number;
+    achievements_count:number;
 }
 
 interface UserContextType {
