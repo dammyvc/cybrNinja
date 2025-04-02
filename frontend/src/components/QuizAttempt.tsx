@@ -253,7 +253,7 @@ export default function QuizAttempt() {
                                     ? option.is_correct
                                         ? "bg-green-100 border-green-400"
                                         : "bg-red-100 border-red-400"
-                                    : "border-gray-300 hover:bg-gray-100"
+                                    : "border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:border-gray-700"
                             }`}
                             onClick={() => handleAnswer(index)}
                             disabled={selectedOption !== null}
@@ -309,7 +309,7 @@ export default function QuizAttempt() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={showExitModal} onOpenChange={setShowExitModal}>
+            <Dialog open={showExitModal} onOpenChange={setShowExitModal} className="text-gray-600">
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Are you sure you want to exit?</DialogTitle>
