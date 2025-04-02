@@ -309,7 +309,7 @@ export default function QuizAttempt() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={showExitModal} onOpenChange={setShowExitModal} className="text-gray-600">
+            <Dialog open={showExitModal} onOpenChange={setShowExitModal}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Are you sure you want to exit?</DialogTitle>
