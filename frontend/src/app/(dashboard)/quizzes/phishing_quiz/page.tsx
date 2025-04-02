@@ -63,7 +63,7 @@ export default function PhishingQuizzes() {
                         <p className="mt-4 text-gray-600">Creating AI GPT-Generated quiz, please wait...</p>
                     ) : (
                         <Button variant="primary" className="mt-4" onClick={startQuiz}>
-                            Let's Start
+                            Let&#39;s Start
                         </Button>
                     )}
                 </div>
