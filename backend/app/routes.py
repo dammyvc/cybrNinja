@@ -74,6 +74,8 @@ def get_leaderboard():
 @requires_auth
 def update_profile():
     payload = request.user
+    app = quiz_bp.app
+    mongo = app.mongo
     blob_service_client = app.blob_service_client
     container_name = app.container_name
 
@@ -84,20 +86,12 @@ def update_profile():
         app_logger.error(f"Invalid sub format or ObjectId: {payload['sub']} - {str(e)}")
         return jsonify({"error": "Invalid user ID format"}), 400
 
-    # Handle multipart form data or JSON
-    if request.content_type.startswith("multipart/form-data"):
-        username = request.form.get("username")
-        email = request.form.get("email")
-        old_password = request.form.get("oldPassword")
-        new_password = request.form.get("newPassword")
-        avatar_file = request.files.get("avatar")
-    else:
-        data = request.get_json() or {}
-        username = data.get("username")
-        email = data.get("email")
-        old_password = data.get("oldPassword")
-        new_password = data.get("newPassword")
-        avatar_file = None
+    data = request.get_json() or {}
+    username = data.get("username")
+    email = data.get("email")
+    old_password = data.get("oldPassword")
+    new_password = data.get("newPassword")
+    avatar_base64 = data.get("avatar")  # Base64 string
 
     if not username or not email:
         return jsonify({"error": "Username and email are required"}), 400
@@ -109,24 +103,27 @@ def update_profile():
 
         update_data = {"username": username, "email": email}
 
-        # Handle avatar upload to Azure Blob Storage
+        # Handle avatar upload from base64 to Azure Blob Storage
         avatar_url = None
-        if avatar_file:
-            blob_name = f"{mongo_id}/{avatar_file.filename}"
+        if avatar_base64 and avatar_base64.startswith("data:image"):
+            # Extract the base64 data (remove "data:image/png;base64," prefix)
+            base64_string = avatar_base64.split(",")[1]
+            image_data = base64.b64decode(base64_string)
+            blob_name = f"{mongo_id}/avatar-{datetime.utcnow().isoformat()}.png"  # Unique filename
             blob_client = blob_service_client.get_blob_client(
                 container=container_name,
                 blob=blob_name
             )
-            blob_client.upload_blob(avatar_file.stream, overwrite=True)
+            blob_client.upload_blob(BytesIO(image_data), overwrite=True)
 
-            # Generate SAS token for private access
+            # Generate SAS token
             sas_token = generate_blob_sas(
                 account_name=app.config["AZURE_STORAGE_ACCOUNT_NAME"],
                 container_name=container_name,
                 blob_name=blob_name,
                 account_key=app.config["AZURE_STORAGE_KEY"],
                 permission=BlobSasPermissions(read=True),
-                expiry=datetime.utcnow() + timedelta(hours=24)  # Expires in 24 hours
+                expiry=datetime.utcnow() + timedelta(hours=24)
             )
             avatar_url = f"{blob_client.url}?{sas_token}"
             update_data["avatar"] = avatar_url

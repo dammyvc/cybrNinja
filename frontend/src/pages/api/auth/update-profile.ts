@@ -1,13 +1,5 @@
 import { getAccessToken } from "@auth0/nextjs-auth0";
 import type { NextApiRequest, NextApiResponse } from "next";
-import formidable from "formidable";
-import fs from "fs";
-
-export const config = {
-    api: {
-        bodyParser: false, // Disable default body parsing for multipart/form-data
-    },
-};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "PUT") {
@@ -26,30 +18,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(401).json({ error: "No access token available" });
         }
 
-        // Parse multipart/form-data
-        const form = formidable({ multiples: false });
-        const [fields, files] = await new Promise<[formidable.Fields, formidable.Files]>((resolve, reject) => {
-            form.parse(req, (err, fields, files) => {
-                if (err) reject(err);
-                else resolve([fields, files]);
-            });
-        });
-
-        const formData = new FormData();
-        for (const key in fields) {
-            formData.append(key, fields[key]![0]); // formidable returns arrays
-        }
-        if (files.avatar) {
-            const file = files.avatar as formidable.File;
-            formData.append("avatar", fs.createReadStream(file.filepath), file.originalFilename || "avatar");
-        }
+        const updateData = req.body;
 
         const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/update-profile`, {
             method: "PUT",
             headers: {
                 Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
             },
-            body: formData,
+            body: JSON.stringify(updateData),
         });
 
         const responseData = await backendResponse.json();
