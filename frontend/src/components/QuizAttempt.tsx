@@ -137,9 +137,16 @@ export default function QuizAttempt() {
 
     const handleFinishQuiz = async () => {
         setShowModal(false);
+    
+        // First, update results with the current question before calculating feedback
+        const updatedResults = [
+            ...results,
+            { question: currentQuestion.text, isCorrect, selectedOption },
+        ];
+    
         const attemptData = {
             quiz_id: quizId,
-            question_attempts: results.map((r, i) => ({
+            question_attempts: updatedResults.map((r, i) => ({
                 question_id: questions[i].question_id,
                 user_answer: String(r.selectedOption),
                 is_correct: r.isCorrect,
@@ -164,19 +171,18 @@ export default function QuizAttempt() {
     
             const quizScore = {
                 totalQuestions: questions.length,
-                correctAnswers: results.filter((r) => r.isCorrect).length + (isCorrect ? 1 : 0),
-                feedback: results.map((r, i) => {
+                correctAnswers: updatedResults.filter((r) => r.isCorrect).length,
+                feedback: updatedResults.map((r, i) => {
                     const question = questions[i];
                     const correctOption = question.options.find((opt) => opt.is_correct);
                     return r.isCorrect
                         ? `Q${i + 1}: Correct!`
                         : `Q${i + 1}: Incorrect - Your answer: "${question.options[r.selectedOption!].text}". Correct answer: "${correctOption!.text}". ${question.options[r.selectedOption!].feedback}`;
                 }),
-                results: [...results, { question: currentQuestion.text, isCorrect, selectedOption }],
+                results: updatedResults,
             };
             setQuizScore(quizScore);
     
-            
             toast.success(
                 `Quiz Completed! 🎉\nYou earned ${quiz_xp} XP from the quiz.`,
                 {
@@ -189,7 +195,6 @@ export default function QuizAttempt() {
                 }
             );
     
-            
             if (new_achievements && new_achievements.length > 0) {
                 new_achievements.forEach((achievement: NewAchievement) => {
                     toast.success(
@@ -206,7 +211,6 @@ export default function QuizAttempt() {
                 });
             }
     
-            
             toast.info(
                 `Total XP Earned: ${xp_earned} 🎉\n(Quiz: ${quiz_xp} + Achievements: ${achievement_xp})`,
                 {

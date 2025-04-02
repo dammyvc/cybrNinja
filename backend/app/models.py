@@ -188,8 +188,7 @@ def update_user_achievements(mongo_id, new_achievements):
                             "achievement_id": achievement["achievement_id"],
                             "earned_at": datetime.utcnow().isoformat()
                         }
-                    },
-                    "$inc": {"xp": achievement["xp_reward"]}
+                    }
                 }
             )
             app_logger.info(f"Achievement {achievement['achievement_id']} awarded to user {mongo_id}")
