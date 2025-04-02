@@ -29,7 +29,7 @@
     "clsx": "^2.1.1",
     "cobe": "^0.6.3",
     "cva": "npm:class-variance-authority@^0.7.1",
-    "formidable": "^3.5.1",
+    "formidable": "^3.5.2",
     "lucide-react": "^0.479.0",
     "motion": "^12.4.10",
     "next": "^15.2.4",
