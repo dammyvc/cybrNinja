@@ -9,6 +9,7 @@ from bson.objectid import ObjectId
 import asyncio
 import json
 from datetime import datetime
+from azure.storage.blob import generate_blob_sas, BlobSasPermissions
 
 app_logger = get_logger()
 
@@ -73,6 +74,9 @@ def get_leaderboard():
 @requires_auth
 def update_profile():
     payload = request.user
+    blob_service_client = app.blob_service_client
+    container_name = app.container_name
+
     try:
         mongo_id_str = payload["sub"].split("|")[1]
         mongo_id = ObjectId(mongo_id_str)
@@ -80,26 +84,54 @@ def update_profile():
         app_logger.error(f"Invalid sub format or ObjectId: {payload['sub']} - {str(e)}")
         return jsonify({"error": "Invalid user ID format"}), 400
 
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "No data provided"}), 400
-
-    username = data.get("username")
-    email = data.get("email")
-    avatar = data.get("avatar")
-    old_password = data.get("oldPassword")
-    new_password = data.get("newPassword")
+    # Handle multipart form data or JSON
+    if request.content_type.startswith("multipart/form-data"):
+        username = request.form.get("username")
+        email = request.form.get("email")
+        old_password = request.form.get("oldPassword")
+        new_password = request.form.get("newPassword")
+        avatar_file = request.files.get("avatar")
+    else:
+        data = request.get_json() or {}
+        username = data.get("username")
+        email = data.get("email")
+        old_password = data.get("oldPassword")
+        new_password = data.get("newPassword")
+        avatar_file = None
 
     if not username or not email:
         return jsonify({"error": "Username and email are required"}), 400
 
     try:
-        user = mongo.db.users.find_one({"_id": mongo_id})
+        user = mongo.users.find_one({"_id": mongo_id})
         if not user:
             return jsonify({"error": "User not found"}), 404
 
-        update_data = {"username": username, "email": email, "avatar": avatar}
+        update_data = {"username": username, "email": email}
 
+        # Handle avatar upload to Azure Blob Storage
+        avatar_url = None
+        if avatar_file:
+            blob_name = f"{mongo_id}/{avatar_file.filename}"
+            blob_client = blob_service_client.get_blob_client(
+                container=container_name,
+                blob=blob_name
+            )
+            blob_client.upload_blob(avatar_file.stream, overwrite=True)
+
+            # Generate SAS token for private access
+            sas_token = generate_blob_sas(
+                account_name=app.config["AZURE_STORAGE_ACCOUNT_NAME"],
+                container_name=container_name,
+                blob_name=blob_name,
+                account_key=app.config["AZURE_STORAGE_KEY"],
+                permission=BlobSasPermissions(read=True),
+                expiry=datetime.utcnow() + timedelta(hours=24)  # Expires in 24 hours
+            )
+            avatar_url = f"{blob_client.url}?{sas_token}"
+            update_data["avatar"] = avatar_url
+
+        # Password update logic
         if new_password:
             if not old_password:
                 return jsonify({"error": "Current password is required to change password"}), 400
@@ -116,17 +148,23 @@ def update_profile():
             hashed_password = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt())
             update_data["password"] = hashed_password.decode("utf-8")
 
-        existing_user = mongo.db.users.find_one({"$or": [{"username": username}, {"email": email}], "_id": {"$ne": mongo_id}})
+        # Check for existing username or email
+        existing_user = mongo.users.find_one({"$or": [{"username": username}, {"email": email}], "_id": {"$ne": mongo_id}})
         if existing_user:
             if existing_user["username"] == username:
                 return jsonify({"error": "Username already exists"}), 409
             if existing_user["email"] == email:
                 return jsonify({"error": "Email already exists"}), 409
 
-        result = mongo.db.users.update_one({"_id": mongo_id}, {"$set": update_data})
+        # Update MongoDB
+        result = mongo.users.update_one({"_id": mongo_id}, {"$set": update_data})
         if result.modified_count == 0:
             return jsonify({"error": "No changes made to the profile"}), 400
-        return jsonify({"message": "Profile updated successfully"})
+
+        response = {"message": "Profile updated successfully"}
+        if avatar_url:
+            response["avatarUrl"] = avatar_url
+        return jsonify(response)
     except Exception as e:
         app_logger.error(f"Error updating profile: {str(e)}")
         return jsonify({"error": "Failed to update profile"}), 500

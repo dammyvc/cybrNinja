@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useUserData } from "@/contexts/UserContext";
+import { toast } from "react-toastify";
 
 interface UpdateData {
     username: string;
@@ -122,14 +123,45 @@ export default function ProfileEdit() {
         }
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setFormData({ ...formData, avatar: reader.result as string });
-            };
-            reader.readAsDataURL(file);
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                setError("Image size exceeds 5MB");
+                toast.error("Image size exceeds 5MB");
+                return;
+            }
+
+            const uploadData = new FormData();
+            uploadData.append("avatar", file);
+            uploadData.append("username", formData.username);
+            uploadData.append("email", formData.email);
+
+            try {
+                const res = await fetch("/api/auth/update-profile", {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(updateData),
+                    credentials: "include",
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.error || "Failed to upload image");
+                }
+
+                setFormData((prev) => ({ ...prev, avatar: data.avatarUrl }));
+                setSuccess("Image uploaded successfully");
+                setError("");
+                toast.success("Image uploaded successfully!");
+            } catch (err) {
+                const errorMessage = err instanceof Error ? err.message : "Unknown error";
+                setError(`Error uploading image: ${errorMessage}`);
+                setSuccess("");
+                toast.error(errorMessage);
+            }
         }
     };
 
