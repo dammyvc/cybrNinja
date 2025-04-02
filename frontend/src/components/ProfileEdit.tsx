@@ -134,8 +134,7 @@ export default function ProfileEdit() {
 
             const uploadData = new FormData();
             uploadData.append("avatar", file);
-            uploadData.append("username", formData.username);
-            uploadData.append("email", formData.email);
+            
 
             try {
                 const res = await fetch("/api/auth/update-profile", {
@@ -143,7 +142,7 @@ export default function ProfileEdit() {
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify(updateData),
+                    body: JSON.stringify(uploadData),
                     credentials: "include",
                 });
 
