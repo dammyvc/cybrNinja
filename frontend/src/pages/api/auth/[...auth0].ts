@@ -34,8 +34,10 @@ export default handleAuth({
                 `https://${auth0Domain}/v2/logout?client_id=${clientId}&returnTo=${returnTo}`
             );
             res.status(302).end();
-        } catch (error: any) {
-            res.status(error.status || 500).end(error.message);
+        } catch (error: unknown) {
+            const err = error instanceof Error ? error : new Error('Unknown error');
+            res.status('status' in err && typeof err.status === 'number' ? err.status : 500)
+               .end(err.message);
         }
     },
 });

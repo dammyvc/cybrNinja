@@ -6,14 +6,17 @@ import { CardButton } from "./CardButton";
 import "react-calendar/dist/Calendar.css";
 import { useUserData } from "@/contexts/UserContext";
 
-export type QuizCardProps = {
-    quizLink?: string;
-};
 
 type ValuePiece = Date | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];
 
-export const CalendarView = ({ quizLink }: QuizCardProps) => {
+interface TriviaQuestion {
+    question: string;
+    options: string[];
+    correctAnswer: string;
+}
+
+export const CalendarView = () => {
     const { dbUser, accessToken, loading: userLoading, error: userError } = useUserData();
     const [value, onChange] = useState<Value>(new Date());
     const [timeLeft, setTimeLeft] = useState<string>("");
@@ -22,7 +25,7 @@ export const CalendarView = ({ quizLink }: QuizCardProps) => {
     const [showModal, setShowModal] = useState(false);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [feedback, setFeedback] = useState<string | null>(null);
-    const [triviaQuestion, setTriviaQuestion] = useState<any>(null);
+    const [triviaQuestion, setTriviaQuestion] = useState<TriviaQuestion | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -138,7 +141,7 @@ export const CalendarView = ({ quizLink }: QuizCardProps) => {
             return;
         }
 
-        const isCorrect = selectedAnswer === triviaQuestion.correctAnswer;
+        const isCorrect = selectedAnswer === triviaQuestion?.correctAnswer;
         setFeedback(isCorrect ? "Correct! You've earned 10 XP." : "Incorrect. Try again tomorrow!");
 
         if (isCorrect) {

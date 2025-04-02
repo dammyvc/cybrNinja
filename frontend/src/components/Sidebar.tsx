@@ -15,11 +15,6 @@ import {
 import { useUserData } from "@/contexts/UserContext";
 import Image from "next/image";
 
-type User = {
-    username: string;
-    avatar: string;
-};
-
 interface Links {
     label: string;
     href: string;

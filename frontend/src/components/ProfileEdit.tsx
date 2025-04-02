@@ -2,6 +2,14 @@ import { useState } from "react";
 import Image from "next/image";
 import { useUserData } from "@/contexts/UserContext";
 
+interface UpdateData {
+    username: string;
+    email: string;
+    avatar: string;
+    oldPassword?: string;
+    newPassword?: string;
+}
+
 export default function ProfileEdit() {
     const { dbUser, setDbUser } = useUserData();
     const [formData, setFormData] = useState({
@@ -49,7 +57,7 @@ export default function ProfileEdit() {
             return;
         }
 
-        const updateData: any = {
+        const updateData: UpdateData = {
             username: formData.username,
             email: formData.email,
             avatar: formData.avatar,

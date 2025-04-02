@@ -1,6 +1,16 @@
 import Image from "next/image";
 import { useUserData } from "@/contexts/UserContext";
 
+interface Achievement {
+    achievement_id: string;
+    details: {
+        badge_icon?: string;
+        title?: string;
+        name?: string;
+        description?: string;
+    };
+}
+
 export default function ProfileView() {
     const { dbUser, loading, error } = useUserData();
 
@@ -42,7 +52,7 @@ export default function ProfileView() {
                 <div>
                     <h3 className="text-xl font-semibold mb-2">Achievements</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {dbUser.achievements?.map((achievement: any) => (
+                        {dbUser.achievements?.map((achievement: Achievement) => (
                             <div
                                 key={achievement.achievement_id}
                                 className="bg-gray-100 dark:bg-dark p-2 rounded text-center"

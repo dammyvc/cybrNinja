@@ -28,6 +28,12 @@ interface QuizQuestion {
     hint: string;
 }
 
+interface NewAchievement {
+    name: string;
+    description: string;
+    xp_reward: number;
+}
+
 export default function QuizAttempt() {
     const [currentIndex, setCurrentIndex] = useState<number>(0);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -185,7 +191,7 @@ export default function QuizAttempt() {
     
             
             if (new_achievements && new_achievements.length > 0) {
-                new_achievements.forEach((achievement: any) => {
+                new_achievements.forEach((achievement: NewAchievement) => {
                     toast.success(
                         `Achievement Unlocked: ${achievement.name}! 🎉\n${achievement.description} (+${achievement.xp_reward} XP)`,
                         {

@@ -3,9 +3,28 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 
+interface Achievement {
+    achievement_id: string;
+    details: {
+        badge_icon?: string;
+        name?: string;
+        description?: string;
+    };
+}
+
+interface UserData {
+    username: string;
+    email: string;
+    avatar?: string;
+    rank?: { title: string };
+    leaderboard_position?: number;
+    achievements?: Achievement[];
+    
+}
+
 interface UserContextType {
-    dbUser: any | null;
-    setDbUser: (user: any) => void;
+    dbUser: UserData | null;
+    setDbUser: (user: UserData) => void;
     accessToken: string | null;
     loading: boolean;
     error: string | null;
