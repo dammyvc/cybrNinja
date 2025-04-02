@@ -15,11 +15,11 @@ interface Achievement {
 interface UserData {
     username: string;
     email: string;
+    xp?: number;
     avatar?: string;
     rank?: { title: string };
     leaderboard_position?: number;
     achievements?: Achievement[];
-    
 }
 
 interface UserContextType {
