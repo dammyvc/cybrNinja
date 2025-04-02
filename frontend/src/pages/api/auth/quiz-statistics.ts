@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(401).json({ error: 'No access token available' });
         }
 
-        const url = 'http://127.0.0.1:5000/api/quizzes/statistics';
+        const url = `${process.env.NEXT_PUBLIC_API_URL}/api/quizzes/statistics`;
 
         const backendResponse = await fetch(url, {
             method: 'GET',

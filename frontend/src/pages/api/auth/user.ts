@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         
-        const backendResponse = await fetch('http://127.0.0.1:5000/api/user', {
+        const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user`, {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${accessToken}`,

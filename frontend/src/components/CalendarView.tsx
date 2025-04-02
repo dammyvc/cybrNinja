@@ -75,7 +75,7 @@ export const CalendarView = () => {
         }
     }, [dbUser, accessToken, userLoading]);
 
-    // Update the timer and button state
+    
     useEffect(() => {
         const updateTimer = () => {
             const time = calculateTimeUntilMidnight();
@@ -89,7 +89,7 @@ export const CalendarView = () => {
         return () => clearInterval(interval);
     }, [hasAnsweredToday]);
 
-    // Fetch the trivia question when the button is clicked
+    
     const fetchTriviaQuestion = async () => {
         try {
             setLoading(true);
@@ -116,7 +116,7 @@ export const CalendarView = () => {
         }
     };
 
-    // Handle button click to show the modal and fetch the trivia question
+    
     const handleButtonClick = async () => {
         if (isButtonEnabled) {
             await fetchTriviaQuestion();

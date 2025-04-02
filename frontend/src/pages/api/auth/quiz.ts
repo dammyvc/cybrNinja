@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         const { method, query, body } = req;
-        let url = 'http://127.0.0.1:5000/api'; 
+        let url = `${process.env.NEXT_PUBLIC_API_URL}/api`; 
 
         
         if (method === 'POST' && query.endpoint === 'start') {

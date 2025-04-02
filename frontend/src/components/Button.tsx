@@ -28,7 +28,7 @@ export const Button = (props: ButtonProps) => {
     return (
         <button
             className={classes({ variant, block, className })}
-            {...otherProps} // Spread HTML attributes like onClick here
+            {...otherProps} 
         >
             {children}
         </button>

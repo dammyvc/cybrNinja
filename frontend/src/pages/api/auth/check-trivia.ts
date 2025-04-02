@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        const response = await fetch("http://127.0.0.1:5000/api/check-trivia", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/check-trivia`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",

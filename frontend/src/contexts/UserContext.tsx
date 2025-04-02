@@ -41,7 +41,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Fetch the access token for client-side requests
+    
     useEffect(() => {
         const fetchAccessToken = async () => {
             if (authLoading || !user) return;
@@ -70,7 +70,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         fetchAccessToken();
     }, [user, authLoading]);
 
-    // Fetch user data
+    
     useEffect(() => {
         const fetchUserData = async () => {
             if (authLoading) return;

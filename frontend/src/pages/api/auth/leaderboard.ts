@@ -7,7 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
         // Fetch leaderboard data from the Flask backend
-        const response = await fetch("http://127.0.0.1:5000/api/leaderboard", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leaderboard`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
