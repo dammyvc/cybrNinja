@@ -73,7 +73,8 @@ export default function ProfileEdit() {
             toast.success("Image uploaded successfully!");
         } catch (error) {
             console.error("Image upload error:", error);
-            toast.error(`Image upload failed: ${error.message}`);
+            const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+            toast.error(`Image upload failed: ${errorMessage}`);
         }
     };
 
