@@ -77,7 +77,6 @@ def get_leaderboard():
 @blob_bp.route("/api/generate-upload-url", methods=["POST"])
 @requires_auth
 def generate_upload_url():
-    """Generate a direct upload URL for avatars (without SAS token)."""
     payload = request.user
     blob_service_client = current_app.blob_service_client
     container_name = current_app.container_name
@@ -89,14 +88,11 @@ def generate_upload_url():
         if not mime_type or not mime_type.startswith("image/"):
             return jsonify({"error": "Invalid or missing MIME type"}), 400
 
-        # Determine file extension from MIME type
         extension = mimetypes.guess_extension(mime_type) or ".png"
-
-        # Generate a unique filename for the avatar
         mongo_id_str = payload["sub"].split("|")[1]
         filename = f"{mongo_id_str}/avatar-{uuid.uuid4().hex}{extension}"
 
-        # Construct the direct blob URL (without SAS)
+        # Public container, no SAS needed
         blob_url = f"https://{current_app.config['AZURE_STORAGE_ACCOUNT_NAME']}.blob.core.windows.net/{container_name}/{filename}"
 
         return jsonify({"uploadUrl": blob_url, "blobName": filename})
@@ -107,7 +103,7 @@ def generate_upload_url():
 @app.route("/api/update-profile", methods=["PUT"])
 @requires_auth
 def update_profile():
-    """Update user profile with username, email, and optionally avatar URL."""
+    
     payload = request.user
 
     try:
@@ -120,13 +116,13 @@ def update_profile():
     email = data.get("email")
     old_password = data.get("oldPassword")
     new_password = data.get("newPassword")
-    avatar_url = data.get("avatarUrl")  # Direct URL instead of base64/SAS
+    avatar_url = data.get("avatarUrl")
 
     if not username or not email:
         return jsonify({"error": "Username and email are required"}), 400
 
     try:
-        user = mongo.users.find_one({"_id": mongo_id})
+        user = mongo.db.users.find_one({"_id": mongo_id})
         if not user:
             return jsonify({"error": "User not found"}), 404
 
@@ -134,7 +130,7 @@ def update_profile():
 
         # Store avatar URL permanently
         if avatar_url:
-            update_data["avatar"] = avatar_url  # No SAS, just direct URL
+            update_data["avatar"] = avatar_url  
 
         # Password update logic
         if new_password:

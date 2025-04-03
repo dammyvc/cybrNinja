@@ -39,46 +39,41 @@ export default function ProfileEdit() {
         }
     
         try {
-            // Prepare data to be sent to the API
-            const updateData = {
-                mimeType: file.type,
-            };
+            const updateData = { mimeType: file.type };
     
-            // Call the Next.js API route to get the upload URL
             const response = await fetch("/api/auth/update-avatar", {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(updateData),
+                credentials: "include",
             });
     
-            const { uploadUrl } = await response.json();
-    
-            if (!uploadUrl) {
-                toast.error("Failed to generate upload URL");
-                return;
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to generate upload URL");
             }
     
-            // Upload the image to Azure Blob Storage
+            const { uploadUrl } = data;
+    
             const uploadResponse = await fetch(uploadUrl, {
                 method: "PUT",
                 body: file,
-                headers: { "x-ms-blob-type": "BlockBlob" },
+                headers: {
+                    "x-ms-blob-type": "BlockBlob",
+                    "Content-Type": file.type,  // Required for public container uploads
+                },
             });
     
             if (!uploadResponse.ok) {
-                throw new Error("Upload failed");
+                throw new Error(`Upload failed with status: ${uploadResponse.status}`);
             }
     
-            // After uploading, store the image URL
-            const imageUrl = uploadUrl.split("?")[0]; // Removing the SAS token
-            setFormData((prev) => ({ ...prev, avatar: imageUrl })); // Store image URL
-    
+            const imageUrl = uploadUrl; // No SAS token to strip
+            setFormData((prev) => ({ ...prev, avatar: imageUrl }));
             toast.success("Image uploaded successfully!");
         } catch (error) {
-            console.error(error);
-            toast.error("Image upload failed");
+            console.error("Image upload error:", error);
+            toast.error(`Image upload failed: ${error.message}`);
         }
     };
 
