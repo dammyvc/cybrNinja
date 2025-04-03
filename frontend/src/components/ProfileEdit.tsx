@@ -53,7 +53,7 @@ export default function ProfileEdit() {
                 body: JSON.stringify(updateData),
             });
     
-            const { uploadUrl, blobName } = await response.json();
+            const { uploadUrl } = await response.json();
     
             if (!uploadUrl) {
                 toast.error("Failed to generate upload URL");
