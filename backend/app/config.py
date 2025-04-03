@@ -1,5 +1,7 @@
 import os
 from dotenv import load_dotenv
+import cloudinary
+import cloudinary.uploader
 
 # Load environment variables
 load_dotenv()
@@ -16,7 +18,10 @@ class Config:
     #OPENAI Setup
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-    #AZURE SETUP
-    AZURE_STORAGE_ACCOUNT_NAME = os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
-    AZURE_STORAGE_KEY = os.getenv("AZURE_STORAGE_KEY")
-    AZURE_CONTAINER_NAME = os.getenv("AZURE_CONTAINER_NAME", "avatars")
+    #CLOUDINARY
+    cloudinary.config(
+        cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+        api_key=os.getenv("CLOUDINARY_API_KEY"),
+        api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+        secure=True
+    )

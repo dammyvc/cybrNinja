@@ -39,49 +39,27 @@ export default function ProfileEdit() {
         }
     
         try {
-            const updateData = { mimeType: file.type };
+            console.log("Uploading image directly to backend");
+            const formData = new FormData();
+            formData.append("image", file);
     
-            console.log("Fetching upload URL from /api/auth/update-avatar");
             const response = await fetch("/api/auth/update-avatar", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(updateData),
+                method: "POST",
+                body: formData, // Send as multipart form data
                 credentials: "include",
             });
     
-            console.log("Response status from update-avatar:", response.status);
             const data = await response.json();
+    
             if (!response.ok) {
-                throw new Error(data.error || "Failed to generate upload URL");
+                throw new Error(data.error || "Image upload failed");
             }
     
-            const { uploadUrl } = data;
-            console.log("Generated upload URL:", uploadUrl);
-    
-            console.log("Uploading to Azure Blob Storage");
-            const uploadResponse = await fetch(uploadUrl, {
-                method: "PUT",
-                body: file,
-                headers: {
-                    "x-ms-blob-type": "BlockBlob",
-                    "Content-Type": file.type,
-                },
-            });
-    
-            console.log("Upload response status:", uploadResponse.status);
-            if (!uploadResponse.ok) {
-                const errorText = await uploadResponse.text();
-                console.log("Upload error response:", errorText);
-                throw new Error(`Upload failed with status: ${uploadResponse.status} - ${errorText}`);
-            }
-    
-            const imageUrl = uploadUrl;
-            setFormData((prev) => ({ ...prev, avatar: imageUrl }));
+            setFormData((prev) => ({ ...prev, avatar: data.avatarUrl }));
             toast.success("Image uploaded successfully!");
         } catch (error) {
             console.error("Image upload error:", error);
-            const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-            toast.error(`Image upload failed: ${errorMessage}`);
+            toast.error("Image upload failed");
         }
     };
 
