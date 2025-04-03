@@ -169,7 +169,7 @@ export default function QuizAttempt() {
                     const question = questions[i];
                     const correctOption = question.options.find((opt) => opt.is_correct);
                     return r.isCorrect
-                        ? `Q${i + 1}: Correct! Answer: "${correctOption!.text}". ${question.options[r.selectedOption!].feedback}`;
+                        ? `Q${i + 1}: Correct! Answer: "${correctOption!.text}". ${question.options[r.selectedOption!].feedback}`
                         : `Q${i + 1}: Incorrect - Your answer: "${question.options[r.selectedOption!].text}". Correct answer: "${correctOption!.text}". ${question.options[r.selectedOption!].feedback}`;
                 }),
                 results: [...results, { question: currentQuestion.text, isCorrect, selectedOption }],
