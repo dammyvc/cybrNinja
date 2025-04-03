@@ -16,7 +16,7 @@ export default function QuizResults() {
     const router = useRouter();
 
     const calculateXP = (score: Score | null) => {
-        return score ? score.correctAnswers * 10 : 0;
+        return score ? score.correctAnswers * 10 : 0; 
     };
 
     const handleBackToQuizzes = () => {
