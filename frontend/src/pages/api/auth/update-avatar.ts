@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         
-        const form = new formidable.Formidable();
+        const form = new IncomingForm();
         form.parse(req, async (err, _, files) => { 
             if (err) {
                 console.error("Form parsing error:", err);
@@ -42,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
 
             
-            const form = new IncomingForm();
+            const formData = new FormData();
             formData.append("image", fs.createReadStream(file.filepath), {
                 filename: file.originalFilename ?? " " ,
                 contentType: file.mimetype ?? " " ,
