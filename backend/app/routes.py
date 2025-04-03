@@ -10,6 +10,8 @@ import asyncio
 import json
 from datetime import datetime
 from azure.storage.blob import generate_blob_sas, BlobSasPermissions
+import base64
+from io import BytesIO
 
 app_logger = get_logger()
 
@@ -74,10 +76,10 @@ def get_leaderboard():
 @requires_auth
 def update_profile():
     payload = request.user
-    app = quiz_bp.app
-    mongo = app.mongo
-    blob_service_client = app.blob_service_client
-    container_name = app.container_name
+    # Use current_app instead of quiz_bp.app
+    mongo = current_app.mongo
+    blob_service_client = current_app.blob_service_client
+    container_name = current_app.container_name
 
     try:
         mongo_id_str = payload["sub"].split("|")[1]
@@ -118,10 +120,10 @@ def update_profile():
 
             # Generate SAS token
             sas_token = generate_blob_sas(
-                account_name=app.config["AZURE_STORAGE_ACCOUNT_NAME"],
+                account_name=current_app.config["AZURE_STORAGE_ACCOUNT_NAME"],
                 container_name=container_name,
                 blob_name=blob_name,
-                account_key=app.config["AZURE_STORAGE_KEY"],
+                account_key=current_app.config["AZURE_STORAGE_KEY"],
                 permission=BlobSasPermissions(read=True),
                 expiry=datetime.utcnow() + timedelta(hours=24)
             )
