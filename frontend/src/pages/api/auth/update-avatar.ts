@@ -1,10 +1,13 @@
 import { getAccessToken } from "@auth0/nextjs-auth0";
 import type { NextApiRequest, NextApiResponse } from "next";
-import Busboy from "@fastify/busboy";
+import formidable from "formidable";
+import fs from "fs";
+import FormData from "form-data";
+import fetch from 'node-fetch';
 
 export const config = {
     api: {
-        bodyParser: false, // Disable bodyParser to handle file uploads manually
+        bodyParser: false, 
     },
 };
 
@@ -25,27 +28,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(401).json({ error: "Unauthorized" });
         }
 
-        // Initialize Busboy to parse the form-data request
-        const busboy = Busboy({ headers: { 'content-type': req.headers['content-type'] ?? '' } });
+        
+        const form = new formidable.IncomingForm();
+        form.parse(req, async (err, _, files) => { 
+            if (err) {
+                console.error("Form parsing error:", err);
+                return res.status(500).json({ error: "Failed to process file" });
+            }
 
-        let fileBuffer: Buffer | null = null;
-
-        busboy.on("file", (_fieldname, file) => {
-            const chunks: Buffer[] = [];
-            file.on("data", (chunk) => chunks.push(chunk));
-            file.on("end", () => {
-                fileBuffer = Buffer.concat(chunks);
-            });
-        });
-
-        busboy.on("finish", async () => {
-            if (!fileBuffer) {
+            const file = files.image?.[0];
+            if (!file) {
                 return res.status(400).json({ error: "No image provided" });
             }
 
+            
             const formData = new FormData();
-            formData.append("image", new Blob([fileBuffer]));
+            formData.append("image", fs.createReadStream(file.filepath), {
+                filename: file.originalFilename ?? " " ,
+                contentType: file.mimetype ?? " " ,
+            });
 
+            
             const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload-avatar`, {
                 method: "POST",
                 headers: {
@@ -62,8 +65,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             return res.status(200).json(responseData);
         });
-
-        req.pipe(busboy); // Pipe request data into Busboy
     } catch (error) {
         console.error("API error:", error);
         return res.status(500).json({ error: "Failed to upload avatar" });
