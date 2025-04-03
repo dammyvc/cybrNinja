@@ -35,6 +35,8 @@ export default function ProfileEdit() {
 
         console.log("Selected file:", file);
         console.log("File type:", file.type);
+
+        toast.info("Image uploading... This may take 1-2 minutes, do not refresh the page.");
     
         if (file.size > 5 * 1024 * 1024) {
             toast.error("Image size exceeds 5MB");
