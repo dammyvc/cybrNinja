@@ -43,10 +43,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             
             const formData = new FormData();
-            formData.append("image", fs.createReadStream(file.filepath), {
-                filename: file.originalFilename ?? " " ,
-                contentType: file.mimetype ?? " " ,
+            formData.append("file", fs.createReadStream(file.filepath), {
+                filename: file.originalFilename ?? "image.jpg", 
+                contentType: file.mimetype ?? "image/jpeg", 
             });
+
+            formData.append("folder", "avatars");
+            formData.append("public_id", file.originalFilename ?? "default_id");
 
             
             const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload-avatar`, {
