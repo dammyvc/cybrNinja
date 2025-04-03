@@ -1,6 +1,6 @@
 import { getAccessToken } from "@auth0/nextjs-auth0";
 import type { NextApiRequest, NextApiResponse } from "next";
-import Busboy from "busboy";
+import Busboy from "@fastify/busboy";
 
 export const config = {
     api: {
@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // Initialize Busboy to parse the form-data request
-        const busboy = Busboy({ headers: req.headers });
+        const busboy = Busboy({ headers: { 'content-type': req.headers['content-type'] ?? '' } });
 
         let fileBuffer: Buffer | null = null;
 
