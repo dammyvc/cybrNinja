@@ -6,13 +6,11 @@ import re
 import bcrypt
 from utils.logger import get_logger
 from bson.objectid import ObjectId
-import asyncio
 import json
-from datetime import datetime, timedelta
-import uuid
-from azure.storage.blob import generate_blob_sas, BlobSasPermissions
+from datetime import datetime
 import mimetypes
 from io import BytesIO
+import cloudinary.uploader
 
 app_logger = get_logger()
 
@@ -74,35 +72,51 @@ def get_leaderboard():
         app_logger.error(f"Error fetching leaderboard: {str(e)}")
         return jsonify({"error": "Failed to fetch leaderboard"}), 500
 
-@blob_bp.route("/api/generate-upload-url", methods=["POST"])
+
+@blob_bp.route("/api/upload-avatar", methods=["POST"])
 @requires_auth
-def generate_upload_url():
+def upload_avatar():
     payload = request.user
-    blob_service_client = current_app.blob_service_client
-    container_name = current_app.container_name  # Should be "avatars"
+    
+    try:
+        mongo_id_str = payload["sub"].split("|")[1]
+        mongo_id = ObjectId(mongo_id_str)
+    except (IndexError, ValueError):
+        return jsonify({"error": "Invalid user ID format"}), 400
+
+    if "image" not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    
+    file = request.files["image"]
+
+    # Validate file MIME type (ensure it's an image)
+    mime_type = file.mimetype
+    if not mime_type.startswith("image/"):
+        return jsonify({"error": "Invalid file type. Only images allowed."}), 400
 
     try:
-        data = request.get_json()
-        mime_type = data.get("mimeType")
+        # Upload to Cloudinary
+        result = cloudinary.uploader.upload(
+            file,
+            folder="avatars",
+            public_id=str(mongo_id),
+            overwrite=True
+        )
+        
+        avatar_url = result["secure_url"]
+        
+        # Store in MongoDB
+        mongo.db.users.update_one({"_id": mongo_id}, {"$set": {"avatar": avatar_url}})
 
-        if not mime_type or not mime_type.startswith("image/"):
-            return jsonify({"error": "Invalid or missing MIME type"}), 400
+        return jsonify({"avatarUrl": avatar_url, "message": "Avatar uploaded successfully"})
 
-        extension = mimetypes.guess_extension(mime_type) or ".png"
-        mongo_id_str = payload["sub"].split("|")[1]
-        filename = f"avatar-{uuid.uuid4().hex}{extension}"
-
-        blob_url = f"https://{current_app.config['AZURE_STORAGE_ACCOUNT_NAME']}.blob.core.windows.net/{container_name}/{filename}"
-        print(f"Generated upload URL: {blob_url}")  # Debug log
-
-        return jsonify({"uploadUrl": blob_url, "blobName": filename})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"Image upload failed: {str(e)}"}), 500
+
 
 @app.route("/api/update-profile", methods=["PUT"])
 @requires_auth
 def update_profile():
-    
     payload = request.user
 
     try:
@@ -135,18 +149,27 @@ def update_profile():
         if new_password:
             if not old_password:
                 return jsonify({"error": "Current password is required to change password"}), 400
+
+            # Validate new password strength
             if len(new_password) < 8 or not (
                 re.search(r"[a-z]", new_password) and
                 re.search(r"[A-Z]", new_password) and
                 re.search(r"[0-9]", new_password) and
                 re.search(r"[!@#$%^&*]", new_password)
             ):
-                return jsonify({"error": "Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters"}), 400
+                return jsonify({
+                    "error": "Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters"
+                }), 400
+            
+            # Prevent repetitive character patterns
             if re.search(r"(.)\1{2,}", new_password):
                 return jsonify({"error": "Password cannot have more than 2 identical characters in a row"}), 400
+
+            # Verify old password before updating
             if not bcrypt.checkpw(old_password.encode("utf-8"), user["password"].encode("utf-8")):
                 return jsonify({"error": "Current password is incorrect"}), 401
 
+            # Hash new password securely
             hashed_password = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
             update_data["password"] = hashed_password
 
