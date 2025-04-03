@@ -60,7 +60,7 @@ export default function ProfileEdit() {
                 body: file,
                 headers: {
                     "x-ms-blob-type": "BlockBlob",
-                    "Content-Type": file.type,  // Required for public container uploads
+                    "Content-Type": file.type,  
                 },
             });
     

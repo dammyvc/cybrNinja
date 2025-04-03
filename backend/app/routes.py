@@ -152,14 +152,14 @@ def update_profile():
             update_data["password"] = hashed_password
 
         # Ensure username and email are unique
-        existing_user = mongo.users.find_one(
+        existing_user = mongo.db.users.find_one(
             {"$or": [{"username": username}, {"email": email}], "_id": {"$ne": mongo_id}}
         )
         if existing_user:
             return jsonify({"error": "Username or email already exists"}), 409
 
         # Update MongoDB
-        result = mongo.users.update_one({"_id": mongo_id}, {"$set": update_data})
+        result = mongo.db.users.update_one({"_id": mongo_id}, {"$set": update_data})
         if result.modified_count == 0:
             return jsonify({"error": "No changes made to the profile"}), 400
 
