@@ -1,6 +1,6 @@
 import { getAccessToken } from "@auth0/nextjs-auth0";
 import type { NextApiRequest, NextApiResponse } from "next";
-import formidable from "formidable";
+import { IncomingForm } from "formidable";
 import fs from "fs";
 import FormData from "form-data";
 import fetch from 'node-fetch';
@@ -42,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
 
             
-            const formData = new FormData();
+            const form = new IncomingForm();
             formData.append("image", fs.createReadStream(file.filepath), {
                 filename: file.originalFilename ?? " " ,
                 contentType: file.mimetype ?? " " ,
