@@ -164,10 +164,72 @@ export default function ProfileEdit() {
                         required
                     />
                 </div>
-                {/* ... other fields ... */}
+
+                <div>
+                    <label className="block mb-1 font-semibold">Email</label>
+                    <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className="w-full p-2 border rounded dark:bg-dark"
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label className="block mb-1 font-semibold">
+                        Current Password <span className="text-sm italic font-base">(Needed if you change your password)</span>
+                    </label>
+                    <input
+                        type="password"
+                        value={formData.oldPassword}
+                        onChange={(e) => setFormData({ ...formData, oldPassword: e.target.value })}
+                        className="w-full p-2 border rounded dark:bg-dark"
+                    />
+                </div>
+
+                <div>
+                    <label className="block mb-1 font-semibold">
+                        New Password <span className="text-sm italic font-base">(Leave blank if you don’t wish to change it)</span>
+                    </label>
+                    <input
+                        type="password"
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        className="w-full p-2 border rounded dark:bg-dark"
+                    />
+                    {formData.password && (
+                        <ul className="mt-2 text-sm">
+                            <li className={hasNoMoreThanTwoIdentical(formData.password) ? "text-green-500" : "text-red-500"}>
+                                No more than 2 identical characters in a row
+                            </li>
+                            <li className={hasSpecialCharacters(formData.password) ? "text-green-500" : "text-red-500"}>
+                                Special characters (!@#$%^&*)
+                            </li>
+                            <li className={hasMixedCaseAndNumbers(formData.password) ? "text-green-500" : "text-red-500"}>
+                                Lower case (a-z), upper case (A-Z), and numbers (0-9)
+                            </li>
+                            <li className={hasMinLength(formData.password) ? "text-green-500" : "text-red-500"}>
+                                At least 8 characters
+                            </li>
+                        </ul>
+                    )}
+                </div>
+
+                <div>
+                    <label className="block mb-1 font-semibold">Confirm New Password</label>
+                    <input
+                        type="password"
+                        value={formData.confirmPassword}
+                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                        className="w-full p-2 border rounded dark:bg-dark"
+                    />
+                </div>
+
                 {error && <div className="text-red-500 text-sm">{error}</div>}
                 {success && <div className="text-green-500 text-sm">{success}</div>}
             </div>
+
             <button type="submit" className="w-full py-2 bg-green-500 text-white rounded hover:bg-green-600">
                 Save Changes
             </button>
