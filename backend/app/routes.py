@@ -91,6 +91,7 @@ def upload_avatar():
 
     # Validate file MIME type (ensure it's an image)
     mime_type = file.mimetype
+    print(f"Received file MIME type: {mime_type}")
     if not mime_type.startswith("image/"):
         return jsonify({"error": "Invalid file type. Only images allowed."}), 400
 
