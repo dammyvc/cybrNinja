@@ -29,28 +29,56 @@ export default function ProfileEdit() {
     const hasMixedCaseAndNumbers = (password: string) => /[a-z]/.test(password) && /[A-Z]/.test(password) && /[0-9]/.test(password);
     const hasMinLength = (password: string) => password.length >= 8;
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                setError("Image size exceeds 5MB");
-                toast.error("Image size exceeds 5MB");
+        if (!file) return;
+    
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("Image size exceeds 5MB");
+            return;
+        }
+    
+        try {
+            // Prepare data to be sent to the API
+            const updateData = {
+                mimeType: file.type,
+            };
+    
+            // Call the Next.js API route to get the upload URL
+            const response = await fetch("/api/auth/update-avatar", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(updateData),
+            });
+    
+            const { uploadUrl, blobName } = await response.json();
+    
+            if (!uploadUrl) {
+                toast.error("Failed to generate upload URL");
                 return;
             }
-
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64String = reader.result as string;
-                setFormData((prev) => ({ ...prev, avatar: base64String }));
-                setSuccess("Image selected successfully");
-                setError("");
-                toast.success("Image selected successfully!");
-            };
-            reader.onerror = () => {
-                setError("Failed to read image");
-                toast.error("Failed to read image");
-            };
-            reader.readAsDataURL(file);
+    
+            // Upload the image to Azure Blob Storage
+            const uploadResponse = await fetch(uploadUrl, {
+                method: "PUT",
+                body: file,
+                headers: { "x-ms-blob-type": "BlockBlob" },
+            });
+    
+            if (!uploadResponse.ok) {
+                throw new Error("Upload failed");
+            }
+    
+            // After uploading, store the image URL
+            const imageUrl = uploadUrl.split("?")[0]; // Removing the SAS token
+            setFormData((prev) => ({ ...prev, avatar: imageUrl })); // Store image URL
+    
+            toast.success("Image uploaded successfully!");
+        } catch (error) {
+            console.error(error);
+            toast.error("Image upload failed");
         }
     };
 
@@ -112,7 +140,7 @@ export default function ProfileEdit() {
                 ...dbUser,
                 username: formData.username,
                 email: formData.email,
-                avatar: data.avatarUrl || formData.avatar, // Use returned URL if provided
+                avatar: data.avatarUrl || formData.avatar, 
             });
             setSuccess("Profile updated successfully");
             setError("");

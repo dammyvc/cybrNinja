@@ -8,9 +8,10 @@ from utils.logger import get_logger
 from bson.objectid import ObjectId
 import asyncio
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+import uuid
 from azure.storage.blob import generate_blob_sas, BlobSasPermissions
-import base64
+import mimetypes
 from io import BytesIO
 
 app_logger = get_logger()
@@ -18,6 +19,7 @@ app_logger = get_logger()
 # Define blueprints
 app = Blueprint('app', __name__)
 quiz_bp = Blueprint('quiz', __name__)
+blob_bp = Blueprint("blob", __name__)
 
 # General Routes
 @app.route("/")
@@ -72,18 +74,45 @@ def get_leaderboard():
         app_logger.error(f"Error fetching leaderboard: {str(e)}")
         return jsonify({"error": "Failed to fetch leaderboard"}), 500
 
-@app.route("/api/update-profile", methods=["PUT"])
+@blob_bp.route("/api/generate-upload-url", methods=["POST"])
 @requires_auth
-def update_profile():
+def generate_upload_url():
+    """Generate a direct upload URL for avatars (without SAS token)."""
     payload = request.user
     blob_service_client = current_app.blob_service_client
     container_name = current_app.container_name
 
     try:
+        data = request.get_json()
+        mime_type = data.get("mimeType")
+
+        if not mime_type or not mime_type.startswith("image/"):
+            return jsonify({"error": "Invalid or missing MIME type"}), 400
+
+        # Determine file extension from MIME type
+        extension = mimetypes.guess_extension(mime_type) or ".png"
+
+        # Generate a unique filename for the avatar
         mongo_id_str = payload["sub"].split("|")[1]
-        mongo_id = ObjectId(mongo_id_str)
-    except (IndexError, ValueError) as e:
-        app_logger.error(f"Invalid sub format or ObjectId: {payload['sub']} - {str(e)}")
+        filename = f"{mongo_id_str}/avatar-{uuid.uuid4().hex}{extension}"
+
+        # Construct the direct blob URL (without SAS)
+        blob_url = f"https://{current_app.config['AZURE_STORAGE_ACCOUNT_NAME']}.blob.core.windows.net/{container_name}/{filename}"
+
+        return jsonify({"uploadUrl": blob_url, "blobName": filename})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/update-profile", methods=["PUT"])
+@requires_auth
+def update_profile():
+    """Update user profile with username, email, and optionally avatar URL."""
+    payload = request.user
+
+    try:
+        mongo_id = ObjectId(payload["sub"].split("|")[1])
+    except (IndexError, ValueError):
         return jsonify({"error": "Invalid user ID format"}), 400
 
     data = request.get_json() or {}
@@ -91,7 +120,7 @@ def update_profile():
     email = data.get("email")
     old_password = data.get("oldPassword")
     new_password = data.get("newPassword")
-    avatar_base64 = data.get("avatar")  # Base64 string
+    avatar_url = data.get("avatarUrl")  # Direct URL instead of base64/SAS
 
     if not username or not email:
         return jsonify({"error": "Username and email are required"}), 400
@@ -103,55 +132,35 @@ def update_profile():
 
         update_data = {"username": username, "email": email}
 
-        # Handle avatar upload from base64 to Azure Blob Storage
-        avatar_url = None
-        if avatar_base64 and avatar_base64.startswith("data:image"):
-            # Extract the base64 data (remove "data:image/png;base64," prefix)
-            base64_string = avatar_base64.split(",")[1]
-            image_data = base64.b64decode(base64_string)
-            blob_name = f"{mongo_id}/avatar-{datetime.utcnow().isoformat()}.png"  # Unique filename
-            blob_client = blob_service_client.get_blob_client(
-                container=container_name,
-                blob=blob_name
-            )
-            blob_client.upload_blob(BytesIO(image_data), overwrite=True)
-
-            # Generate SAS token
-            sas_token = generate_blob_sas(
-                account_name=current_app.config["AZURE_STORAGE_ACCOUNT_NAME"],
-                container_name=container_name,
-                blob_name=blob_name,
-                account_key=current_app.config["AZURE_STORAGE_KEY"],
-                permission=BlobSasPermissions(read=True),
-                expiry=datetime.utcnow() + timedelta(hours=24)
-            )
-            avatar_url = f"{blob_client.url}?{sas_token}"
-            update_data["avatar"] = avatar_url
+        # Store avatar URL permanently
+        if avatar_url:
+            update_data["avatar"] = avatar_url  # No SAS, just direct URL
 
         # Password update logic
         if new_password:
             if not old_password:
                 return jsonify({"error": "Current password is required to change password"}), 400
+            if len(new_password) < 8 or not (
+                re.search(r"[a-z]", new_password) and
+                re.search(r"[A-Z]", new_password) and
+                re.search(r"[0-9]", new_password) and
+                re.search(r"[!@#$%^&*]", new_password)
+            ):
+                return jsonify({"error": "Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters"}), 400
             if re.search(r"(.)\1{2,}", new_password):
                 return jsonify({"error": "Password cannot have more than 2 identical characters in a row"}), 400
-            if not re.search(r"[!@#$%^&*]", new_password):
-                return jsonify({"error": "Password must contain special characters"}), 400
-            if not (re.search(r"[a-z]", new_password) and re.search(r"[A-Z]", new_password) and re.search(r"[0-9]", new_password)):
-                return jsonify({"error": "Password must contain lower case, upper case, and numbers"}), 400
-            if len(new_password) < 8:
-                return jsonify({"error": "Password must be at least 8 characters long"}), 400
             if not bcrypt.checkpw(old_password.encode("utf-8"), user["password"].encode("utf-8")):
                 return jsonify({"error": "Current password is incorrect"}), 401
-            hashed_password = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt())
-            update_data["password"] = hashed_password.decode("utf-8")
 
-        # Check for existing username or email
-        existing_user = mongo.users.find_one({"$or": [{"username": username}, {"email": email}], "_id": {"$ne": mongo_id}})
+            hashed_password = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+            update_data["password"] = hashed_password
+
+        # Ensure username and email are unique
+        existing_user = mongo.users.find_one(
+            {"$or": [{"username": username}, {"email": email}], "_id": {"$ne": mongo_id}}
+        )
         if existing_user:
-            if existing_user["username"] == username:
-                return jsonify({"error": "Username already exists"}), 409
-            if existing_user["email"] == email:
-                return jsonify({"error": "Email already exists"}), 409
+            return jsonify({"error": "Username or email already exists"}), 409
 
         # Update MongoDB
         result = mongo.users.update_one({"_id": mongo_id}, {"$set": update_data})
@@ -159,12 +168,13 @@ def update_profile():
             return jsonify({"error": "No changes made to the profile"}), 400
 
         response = {"message": "Profile updated successfully"}
-        if avatar_url:
-            response["avatarUrl"] = avatar_url
+        if "avatar" in update_data:
+            response["avatarUrl"] = update_data["avatar"]
+
         return jsonify(response)
+
     except Exception as e:
-        app_logger.error(f"Error updating profile: {str(e)}")
-        return jsonify({"error": "Failed to update profile"}), 500
+        return jsonify({"error": f"Failed to update profile: {str(e)}"}), 500
 
 # Quiz Routes
 @quiz_bp.route("/quizzes/phishing/start", methods=["POST"])

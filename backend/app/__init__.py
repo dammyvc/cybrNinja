@@ -2,7 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from .config import Config
 from .models import mongo, init_app
-from .routes import app as routes_bp, quiz_bp
+from .routes import app as routes_bp, quiz_bp, blob_bp
 from openai import OpenAI
 from azure.storage.blob import BlobServiceClient
 
@@ -26,5 +26,6 @@ def create_app():
     # Register blueprints
     app.register_blueprint(routes_bp)
     app.register_blueprint(quiz_bp, url_prefix="/api")
+    app.register_blueprint(blob_bp)
 
     return app
