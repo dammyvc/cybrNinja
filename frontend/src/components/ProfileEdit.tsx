@@ -29,43 +29,10 @@ export default function ProfileEdit() {
     const hasMixedCaseAndNumbers = (password: string) => /[a-z]/.test(password) && /[A-Z]/.test(password) && /[0-9]/.test(password);
     const hasMinLength = (password: string) => password.length >= 8;
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        console.log("Selected file:", file);
-        console.log("File type:", file.type);
-
-        toast.info("Image uploading... This may take 1-2 minutes, do not refresh the page.");
-    
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error("Image size exceeds 5MB");
-            return;
-        }
-    
-        try {
-            console.log("Uploading image directly to backend");
-            const formData = new FormData();
-            formData.append("image", file);
-    
-            const response = await fetch("/api/auth/update-avatar", {
-                method: "POST",
-                body: formData, // Send as multipart form data
-                credentials: "include",
-            });
-    
-            const data = await response.json();
-    
-            if (!response.ok) {
-                throw new Error(data.error || "Image upload failed");
-            }
-    
-            setFormData((prev) => ({ ...prev, avatar: data.avatarUrl }));
-            toast.success("Image uploaded successfully!");
-        } catch (error) {
-            console.error("Image upload error:", error);
-            toast.error("Image upload failed");
-        }
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        // Prevent opening the file selector dialog
+        e.preventDefault();
+        toast.info("Image upload feature is not active yet.");
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -163,6 +130,7 @@ export default function ProfileEdit() {
                         accept="image/*"
                         onChange={handleImageUpload}
                         className="file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-blue-500 file:text-white hover:file:bg-blue-600"
+                        disabled
                     />
                 </div>
             </div>
