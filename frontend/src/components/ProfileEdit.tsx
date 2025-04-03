@@ -32,6 +32,9 @@ export default function ProfileEdit() {
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+
+        console.log("Selected file:", file);
+        console.log("File type:", file.type);
     
         if (file.size > 5 * 1024 * 1024) {
             toast.error("Image size exceeds 5MB");
