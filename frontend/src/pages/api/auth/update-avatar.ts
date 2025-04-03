@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         
-        const form = new formidable.IncomingForm();
+        const form = new formidable.Formidable();
         form.parse(req, async (err, _, files) => { 
             if (err) {
                 console.error("Form parsing error:", err);
