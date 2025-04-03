@@ -1,5 +1,12 @@
 import { getAccessToken } from "@auth0/nextjs-auth0";
 import type { NextApiRequest, NextApiResponse } from "next";
+import Busboy from "busboy";
+
+export const config = {
+    api: {
+        bodyParser: false, // Disable bodyParser to handle file uploads manually
+    },
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "POST") {
@@ -18,30 +25,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(401).json({ error: "Unauthorized" });
         }
 
-        // Ensure a file is being sent
-        if (!req.body || !req.body.image) {
-            return res.status(400).json({ error: "No image provided" });
-        }
+        // Initialize Busboy to parse the form-data request
+        const busboy = Busboy({ headers: req.headers });
 
-        // Forward the file to the backend
-        const formData = new FormData();
-        formData.append("image", req.body.image);
+        let fileBuffer: Buffer | null = null;
 
-        const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload-avatar`, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-            body: formData,
+        busboy.on("file", (_fieldname, file) => {
+            const chunks: Buffer[] = [];
+            file.on("data", (chunk) => chunks.push(chunk));
+            file.on("end", () => {
+                fileBuffer = Buffer.concat(chunks);
+            });
         });
 
-        const responseData = await backendResponse.json();
+        busboy.on("finish", async () => {
+            if (!fileBuffer) {
+                return res.status(400).json({ error: "No image provided" });
+            }
 
-        if (!backendResponse.ok) {
-            return res.status(backendResponse.status).json(responseData);
-        }
+            const formData = new FormData();
+            formData.append("image", new Blob([fileBuffer]));
 
-        return res.status(200).json(responseData);
+            const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload-avatar`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+                body: formData,
+            });
+
+            const responseData = await backendResponse.json();
+
+            if (!backendResponse.ok) {
+                return res.status(backendResponse.status).json(responseData);
+            }
+
+            return res.status(200).json(responseData);
+        });
+
+        req.pipe(busboy); // Pipe request data into Busboy
     } catch (error) {
         console.error("API error:", error);
         return res.status(500).json({ error: "Failed to upload avatar" });
