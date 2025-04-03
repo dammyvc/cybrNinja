@@ -76,8 +76,6 @@ def get_leaderboard():
 @requires_auth
 def update_profile():
     payload = request.user
-    # Use current_app instead of quiz_bp.app
-    mongo = current_app.mongo
     blob_service_client = current_app.blob_service_client
     container_name = current_app.container_name
 
