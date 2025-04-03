@@ -90,7 +90,7 @@ def generate_upload_url():
 
         extension = mimetypes.guess_extension(mime_type) or ".png"
         mongo_id_str = payload["sub"].split("|")[1]
-        filename = f"{mongo_id_str}/avatar-{uuid.uuid4().hex}{extension}"
+        filename = f"/avatar-{uuid.uuid4().hex}{extension}"
 
         blob_url = f"https://{current_app.config['AZURE_STORAGE_ACCOUNT_NAME']}.blob.core.windows.net/{container_name}/{filename}"
         print(f"Generated upload URL: {blob_url}")  # Debug log
