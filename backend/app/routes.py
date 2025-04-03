@@ -88,19 +88,9 @@ def generate_upload_url():
         if not mime_type or not mime_type.startswith("image/"):
             return jsonify({"error": "Invalid or missing MIME type"}), 400
 
-        # Get MongoDB _id from Auth0 sub
-        mongo_id_str = payload["sub"].split("|")[1]
-        mongo_id = ObjectId(mongo_id_str)
-
-        # Fetch user from MongoDB to get user_id
-        user = mongo.db.users.find_one({"_id": mongo_id}, {"user_id": 1})
-        if not user:
-            return jsonify({"error": "User not found in database"}), 404
-
-        user_id = user["user_id"]  # Use user_id from MongoDB
-
         extension = mimetypes.guess_extension(mime_type) or ".png"
-        filename = f"{user_id}/avatar-{uuid.uuid4().hex}{extension}"
+        mongo_id_str = payload["sub"].split("|")[1]
+        filename = f"{mongo_id_str}/avatar-{uuid.uuid4().hex}{extension}"
 
         blob_url = f"https://{current_app.config['AZURE_STORAGE_ACCOUNT_NAME']}.blob.core.windows.net/{container_name}/{filename}"
         print(f"Generated upload URL: {blob_url}")  # Debug log

@@ -41,6 +41,7 @@ export default function ProfileEdit() {
         try {
             const updateData = { mimeType: file.type };
     
+            console.log("Fetching upload URL from /api/auth/update-avatar");
             const response = await fetch("/api/auth/update-avatar", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -48,27 +49,33 @@ export default function ProfileEdit() {
                 credentials: "include",
             });
     
+            console.log("Response status from update-avatar:", response.status);
             const data = await response.json();
             if (!response.ok) {
                 throw new Error(data.error || "Failed to generate upload URL");
             }
     
             const { uploadUrl } = data;
+            console.log("Generated upload URL:", uploadUrl);
     
+            console.log("Uploading to Azure Blob Storage");
             const uploadResponse = await fetch(uploadUrl, {
                 method: "PUT",
                 body: file,
                 headers: {
                     "x-ms-blob-type": "BlockBlob",
-                    "Content-Type": file.type,  
+                    "Content-Type": file.type,
                 },
             });
     
+            console.log("Upload response status:", uploadResponse.status);
             if (!uploadResponse.ok) {
-                throw new Error(`Upload failed with status: ${uploadResponse.status}`);
+                const errorText = await uploadResponse.text();
+                console.log("Upload error response:", errorText);
+                throw new Error(`Upload failed with status: ${uploadResponse.status} - ${errorText}`);
             }
     
-            const imageUrl = uploadUrl; // No SAS token to strip
+            const imageUrl = uploadUrl;
             setFormData((prev) => ({ ...prev, avatar: imageUrl }));
             toast.success("Image uploaded successfully!");
         } catch (error) {
