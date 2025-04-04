@@ -53,7 +53,7 @@
 
 **Why cybrNinja?**
 
-This project empowers developers to create engaging learning experiences while ensuring robust security and performance. The core features include:
+This project empowers users to have an engaging learning experience while ensuring robust security and performance. The core features include:
 
 - **🎯 Dynamic Quiz Generation:** Leverages OpenAI's API to create unique phishing-related quiz questions, enhancing user engagement.
 - **🏆 Real-time Leaderboard Updates:** Implements threading to keep the application responsive while updating user rankings daily.
