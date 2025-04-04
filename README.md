@@ -8,11 +8,6 @@
 
 <em>Master Cybersecurity Through Engaging, Interactive Learning</em>
 
-<!-- BADGES -->
-<img src="https://img.shields.io/github/last-commit/dammyvc/cybrNinja?style=flat&logo=git&logoColor=white&color=0080ff" alt="last-commit">
-<img src="https://img.shields.io/github/languages/top/dammyvc/cybrNinja?style=flat&color=0080ff" alt="repo-top-language">
-<img src="https://img.shields.io/github/languages/count/dammyvc/cybrNinja?style=flat&color=0080ff" alt="repo-language-count">
-
 <em>Built with the tools and technologies:</em>
 
 <img src="https://img.shields.io/badge/Flask-000000.svg?style=flat&logo=Flask&logoColor=white" alt="Flask">
