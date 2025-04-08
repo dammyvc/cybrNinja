@@ -16,7 +16,7 @@ export default function QuizResults() {
     const router = useRouter();
 
     const calculateXP = (score: Score | null) => {
-        return score ? score.correctAnswers * 10 : 0; 
+        return score ? score.correctAnswers * 10 : 0;
     };
 
     const handleBackToQuizzes = () => {
@@ -32,7 +32,7 @@ export default function QuizResults() {
             <div className="bg-white shadow-md rounded-lg p-6 max-w-lg w-full">
                 <h1 className="text-2xl font-bold mb-4 text-center">Quiz Results</h1>
 
-                
+
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold mb-2">Quiz Results</h2>
                     <p className="text-lg">
@@ -45,18 +45,17 @@ export default function QuizResults() {
                     <ul className="list-disc pl-5 space-y-2 mt-2 text-sm">
                         {quizScore.feedback.map((item, index) => (
                             <li
-                                  key={index}
-                                  className={`text-sm flex items-start gap-2 ${
-                                    item.startsWith("Correct") ? "text-green-600" : "text-red-600"
-                                      }`}
+                                key={index}
+                                className={`text-sm flex items-start gap-2 ${item.includes("Correct") && !item.includes("Incorrect") ? "text-green-600" : "text-red-600"
+                                    }`}
                             >
-                              <span className="font-bold">•</span> {item}
+                                <span className="font-bold">•</span> {item}
                             </li>
                         ))}
                     </ul>
                 </div>
 
-                
+
 
                 {/* Total XP */}
                 <div className="text-center mb-6">
