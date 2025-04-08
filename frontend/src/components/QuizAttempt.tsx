@@ -164,7 +164,7 @@ export default function QuizAttempt() {
     
             const quizScore = {
                 totalQuestions: questions.length,
-                correctAnswers: results.filter((r) => r.isCorrect).length + (isCorrect ? 1 : 0),
+                correctAnswers: results.filter((r) => r.isCorrect).length,
                 feedback: results.map((r, i) => {
                     const question = questions[i];
                     const correctOption = question.options.find((opt) => opt.is_correct);
