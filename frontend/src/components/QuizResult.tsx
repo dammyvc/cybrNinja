@@ -45,10 +45,12 @@ export default function QuizResults() {
                     <ul className="list-disc pl-5 space-y-2 mt-2 text-sm">
                         {quizScore.feedback.map((item, index) => (
                             <li
-                                key={index}
-                                className={item.includes("Correct") ? "!text-green-600" : "!text-red-600"}
+                                  key={index}
+                                  className={`text-sm flex items-start gap-2 ${
+                                    item.startsWith("Correct") ? "text-green-600" : "text-red-600"
+                                      }`}
                             >
-                                {item}
+                              <span className="font-bold">•</span> {item}
                             </li>
                         ))}
                     </ul>
