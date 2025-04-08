@@ -46,7 +46,7 @@ export default function QuizResults() {
                         {quizScore.feedback.map((item, index) => (
                             <li
                                 key={index}
-                                className={item.includes("Correct") ? "text-green-600" : "text-red-600"}
+                                className={item.includes("Correct") ? "!text-green-600" : "!text-red-600"}
                             >
                                 {item}
                             </li>
